@@ -1,0 +1,31 @@
+{
+  "name": "exadelbackendfoodtask",
+  "version": "1.0.0",
+  "description": "Ребята в милой ламповой обстановке пилят серверок",
+  "main": "index.js",
+  "dependencies": {
+    "ajv": "^6.4.0",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-promise": "^3.7.0",
+    "eslint-plugin-node": "^6.0.1",
+    "eslint-plugin-standard": "^3.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^4.9.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.7.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skateray17/ExadelBackEndFoodTask.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/skateray17/ExadelBackEndFoodTask/issues"
+  },
+  "homepage": "https://github.com/skateray17/ExadelBackEndFoodTask#readme"
+}
