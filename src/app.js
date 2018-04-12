@@ -3,6 +3,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import accountRouter from './routes/account-routes';
+import menuRouter from './routes/menu-router';
 
 dotenv.config();
 const app = express();
@@ -13,6 +14,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/api/account', accountRouter);
+app.use('/api/menu', menuRouter);
 
 const server = app.listen(process.env.CONNECTION_PORT, () => {
   console.log(`Server listening on port ${server.address().port}`);
