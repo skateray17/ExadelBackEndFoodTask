@@ -1,20 +1,19 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
-import accountRoter from './routes/account-routes';
+import accountRouter from './routes/account-routes';
 
+dotenv.config();
 const app = express();
 
-const dbName = 'FoodDelivery';
-const connectionString = `mongodb://localhost:27017/${dbName}`;
-
-mongoose.connect(connectionString);
+mongoose.connect(process.env.CONNECTION_STRING);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use('/api/account', accountRoter);
+app.use('/api/account', accountRouter);
 
-const server = app.listen(3000, () => {
+const server = app.listen(process.env.CONNECTION_PORT, () => {
   console.log(`Server listening on port ${server.address().port}`);
 });
