@@ -1,7 +1,7 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
-const accountRoter = require('./routes/account-routes');
+import express from 'express';
+import mongoose from 'mongoose';
+import bodyParser from 'body-parser';
+import accountRoter from './routes/account-routes';
 
 const app = express();
 

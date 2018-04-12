@@ -14,12 +14,17 @@
     "mongoose": "^5.0.14"
   },
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
     "eslint": "^4.9.0",
     "eslint-config-airbnb-base": "^12.1.0",
     "eslint-plugin-import": "^2.7.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm run build && node build/app.js",
+    "build": "babel src -d build --presets env",
+    "watch": "babel src -d build --presets env -w"
   },
   "repository": {
     "type": "git",
