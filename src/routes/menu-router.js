@@ -10,10 +10,18 @@ router.route('/addMenu')
       buffer.push(chunk);
     }).on('end', () => {
       const file = Buffer.concat(buffer);
-      menuController.addMenu(file, (status, body) => {
-        res.status(status).send(body);
-      });
+      menuController.addMenu(file)
+        .then((response) => {
+          res.status(response.status).send(response.body);
+        });
     });
+  });
+router.route('/getMenu')
+  .get((req, res) => {
+    menuController.getMenu()
+      .then((response) => {
+        res.status(response.status).send(response.body);
+      });
   });
 
 module.exports = router;
