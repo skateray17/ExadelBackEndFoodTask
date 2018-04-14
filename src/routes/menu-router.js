@@ -10,7 +10,9 @@ router.route('/addMenu')
       buffer.push(chunk);
     }).on('end', () => {
       const file = Buffer.concat(buffer);
-      res.send(menuController.addMenu(file));
+      menuController.addMenu(file, (status, body) => {
+        res.status(status).send(body);
+      });
     });
   });
 
