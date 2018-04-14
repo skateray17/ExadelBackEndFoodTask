@@ -5,10 +5,11 @@ const router = express.Router();
 
 router.route('/logon')
   .post((req, res) => {
-    if (!req.body.email || !req.body.password) {
-      res.send(401).send({ token: null, auth: false, message: 'Wrong data!' });
+    if (!req.body || !req.body.email || !req.body.password) {
+      res.status(401).send({ token: null, auth: false, message: 'Wrong data!' });
     } else {
-      accountController.logon(req.body, (status, resp) => res.status(status).send(resp));
+      accountController.logon(req.body)
+        .then(response => res.status(response.status).send(response.response));
     }
   });
 
