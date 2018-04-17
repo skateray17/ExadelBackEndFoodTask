@@ -26,6 +26,7 @@
     "start": "npm run build && node build/app.js",
     "build": "babel src -d build --presets env",
     "watch": "babel src -d build --presets env -w"
+
   },
   "repository": {
     "type": "git",
