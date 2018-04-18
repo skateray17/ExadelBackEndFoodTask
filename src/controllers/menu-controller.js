@@ -119,6 +119,7 @@ function makeMenu(book) {
       }
     }
   });
+  return MENU;
 }
 function addMenu(body) {
   try {
@@ -135,9 +136,7 @@ function addMenu(body) {
             menu: MENU,
           });
           m.save();
-          return {
-            body: MENU,
-          };
+          return MENU;
         }
         throw fileError;
       });
@@ -159,9 +158,6 @@ function getMenu() {
       if (results[1]) {
         MENUS.push(results[1]);
       }
-      return {
-        status: 200,
-        body: MENUS,
-      };
+      return MENUS;
     });
 }
