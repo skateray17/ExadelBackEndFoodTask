@@ -1,6 +1,10 @@
 import XLSX from 'xlsx';
 import Menu from '../models/Menu';
 
+export default {
+  addMenu,// eslint-disable-line
+  getMenu,// eslint-disable-line
+};
 const XLSXDatePlace = 'B1';
 const XLSXDayWord = 'A1';
 const XLSXDay = 'A';
@@ -24,13 +28,17 @@ const Day = {
   fri: '4',
   sat: '5',
 };
+const existError = {
+  message: 'menu is already exists',
+};
+const fileError = {
+  message: 'file error',
+};
+function validateFood(el) {
+  return el.name && el.cost && typeof el.name === 'string' && typeof el.cost === 'number';
+}
 function validateDayItem(dayItem) {
-  return dayItem.some((el) => {
-    if (el.name && el.cost && typeof el.name === 'string' && typeof el.cost === 'number') {
-      return false;
-    }
-    return true;
-  });
+  return dayItem.some(el => !validateFood(el));
 }
 function validateMenuItem(menuItem) {
   if (Object.keys(menuItem).some((e) => {
@@ -44,132 +52,116 @@ function validateMenuItem(menuItem) {
   }
   return false;
 }
+function addZero(num) {
+  if (num < 10) {
+    return `0${num}`;
+  }
+  return num;
+}
 function getStringDate(d) {
   const date = new Date(d);
-  let day = date.getDate() - date.getDay();
-  day += 1;
+  let day = (date.getDate() - date.getDay()) + 1;
   if (date.getDay() === 0) {
     day -= 7;
   }
-  if (day < 10) {
-    day = `0${day}`;
-  }
-  let month = date.getMonth() + 1;
-  if (month < 10) {
-    month = `0${month}`;
-  }
+  day = addZero(day);
+  let month = addZero(date.getMonth() + 1);
   let dateString = `${day}.${month}.${date.getFullYear()}-`;
   date.setDate((date.getDate() - date.getDay()) + 7);
   day = date.getDate();
-  if (day < 10) {
-    day = `0${day}`;
-  }
-  month = date.getMonth() + 1;
-  if (month < 10) {
-    month = `0${month}`;
-  }
+  day = addZero(day);
+  month = addZero(date.getMonth() + 1);
   dateString += `${day}.${month}.${date.getFullYear()}`;
   return dateString;
 }
-export default {
-  validateMenu(menu) {
-    return typeof menu.date === 'string' && !Object.keys(menu).some((el) => {
-      const menuItem = menu[el];
-      if (typeof menuItem === 'string') {
-        return false;
-      }
-      if (menuItem) {
-        return validateMenuItem(menuItem);
-      }
-      return true;
-    });
-  },
-  addMenu(body) {
-    try {
-      let book = XLSX.read(body);
-      book = book.Sheets[book.SheetNames[0]];
-      const MENU = {};
-      let currentDate;
-      let date;
-      Object.keys(book).forEach((el) => {
-        if (el === XLSXDatePlace) {
-          MENU.date = book[el].v;
-          date = MENU.date.split('-')[0].split('.');
-        }
-        if (el.startsWith(XLSXDay) && el !== XLSXDayWord) {
-          currentDate = Translate[book[el].v];
-          if (+date[0] + +Day[currentDate]) {
-            MENU[currentDate] = {
-              day: new Date(date[2], date[1] - 1, +date[0] + +Day[currentDate]),
-              menu: [],
-            };
-          } else {
-            MENU[currentDate] = {
-              menu: [],
-            };
-          }
-        } else if (currentDate) {
-          const menuOnDate = MENU[currentDate];
-          const index = menuOnDate.menu.length - 1;
-          if (el.startsWith(XLSXFoodName)) {
-            menuOnDate.menu.push({ name: book[el].v });
-          } else if (el.startsWith(XLSXFoodWeight)) {
-            menuOnDate.menu[index].weight = book[el].v;
-          } else if (el.startsWith(XLSXFoodCost)) {
-            menuOnDate.menu[index].cost = book[el].v;
-          }
-        }
-      });
-      return Menu.findOne(({ date: MENU.date }))
-        .then((menu) => {
-          if (menu) {
-            return {
-              status: 506,
-              body: { message: 'menu is already exists' },
-            };
-          } else if (this.validateMenu(MENU)) {
-            const m = new Menu({
-              date: MENU.date,
-              menu: MENU,
-            });
-            m.save();
-            return {
-              status: 200,
-              body: MENU,
-            };
-          }
-          return {
-            status: 506,
-            body: { message: 'file error' },
-          };
-        });
-    } catch (e) {
-      return new Promise((res) => {
-        res({
-          status: 506,
-          body: { message: 'file error' },
-        });
-      });
+function validateMenu(menu) {
+  return typeof menu.date === 'string' && !Object.keys(menu).some((el) => {
+    const menuItem = menu[el];
+    if (typeof menuItem === 'string') {
+      return false;
     }
-  },
-  getMenu() {
-    const date = new Date();
-    const date1 = getStringDate(date);
-    date.setDate((date.getDate() - date.getDay()) + 8);
-    const date2 = getStringDate(date);
-    const MENUS = [];
-    return Promise.all([Menu.findOne(({ date: date1 })), Menu.findOne(({ date: date2 }))])
-      .then((results) => {
-        if (results[0]) {
-          MENUS.push(results[0]);
-        }
-        if (results[1]) {
-          MENUS.push(results[1]);
-        }
-        return {
-          status: 200,
-          body: MENUS,
+    if (menuItem) {
+      return validateMenuItem(menuItem);
+    }
+    return true;
+  });
+}
+function makeMenu(book) {
+  let date;
+  let currentDate;
+  const MENU = {};
+  Object.keys(book).forEach((el) => {
+    if (el === XLSXDatePlace) {
+      MENU.date = book[el].v;
+      date = MENU.date.split('-')[0].split('.');
+    }
+    if (el.startsWith(XLSXDay) && el !== XLSXDayWord) {
+      currentDate = Translate[book[el].v];
+      if (+date[0] + +Day[currentDate]) {
+        MENU[currentDate] = {
+          day: new Date(date[2], date[1] - 1, +date[0] + +Day[currentDate]),
+          menu: [],
         };
+      } else {
+        MENU[currentDate] = {
+          menu: [],
+        };
+      }
+    } else if (currentDate) {
+      const menuOnDate = MENU[currentDate];
+      const index = menuOnDate.menu.length - 1;
+      if (el.startsWith(XLSXFoodName)) {
+        menuOnDate.menu.push({ name: book[el].v });
+      } else if (el.startsWith(XLSXFoodWeight)) {
+        menuOnDate.menu[index].weight = book[el].v;
+      } else if (el.startsWith(XLSXFoodCost)) {
+        menuOnDate.menu[index].cost = book[el].v;
+      }
+    }
+  });
+}
+function addMenu(body) {
+  try {
+    let book = XLSX.read(body);
+    book = book.Sheets[book.SheetNames[0]];
+    const MENU = makeMenu(book);
+    return Menu.findOne(({ date: MENU.date }))
+      .then((menu) => {
+        if (menu) {
+          throw existError;
+        } else if (validateMenu(MENU)) {
+          const m = new Menu({
+            date: MENU.date,
+            menu: MENU,
+          });
+          m.save();
+          return {
+            body: MENU,
+          };
+        }
+        throw fileError;
       });
-  },
-};
+  } catch (e) {
+    return Promise.reject(fileError);
+  }
+}
+function getMenu() {
+  const date = new Date();
+  const date1 = getStringDate(date);
+  date.setDate((date.getDate() - date.getDay()) + 8);
+  const date2 = getStringDate(date);
+  const MENUS = [];
+  return Promise.all([Menu.findOne(({ date: date1 })), Menu.findOne(({ date: date2 }))])
+    .then((results) => {
+      if (results[0]) {
+        MENUS.push(results[0]);
+      }
+      if (results[1]) {
+        MENUS.push(results[1]);
+      }
+      return {
+        status: 200,
+        body: MENUS,
+      };
+    });
+}

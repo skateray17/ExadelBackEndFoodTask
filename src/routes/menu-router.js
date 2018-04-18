@@ -12,7 +12,10 @@ router.route('/addMenu')
       const file = Buffer.concat(buffer);
       menuController.addMenu(file)
         .then((response) => {
-          res.status(response.status).send(response.body);
+          res.status(200).send(response.body);
+        })
+        .catch((error) => {
+          res.status(406).send(error);
         });
     });
   });
@@ -20,7 +23,10 @@ router.route('/getMenu')
   .get((req, res) => {
     menuController.getMenu()
       .then((response) => {
-        res.status(response.status).send(response.body);
+        res.status(200).send(response.body);
+      })
+      .catch((error) => {
+        res.status(406).send(error);
       });
   });
 
