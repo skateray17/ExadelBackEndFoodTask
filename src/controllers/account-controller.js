@@ -4,8 +4,7 @@ import User from '../models/User';
 import userTypes from '../models/user-types';
 
 export default {
-  logon, // eslint-disable-line
-  addUser,// eslint-disable-line
+  login, // eslint-disable-line
   untokenize, // eslint-disable-line
 };
 
@@ -20,28 +19,25 @@ function untokenize(token) {
   return JWT.verify(token, process.env.JWT_SECRET);
 }
 
-function logon(req) {
+function login(req) {
   return User.findOne({ email: req.email })
     .then((user) => {
       const passHash = crypt(req.password, user.passwordSalt);
       if (passHash !== user.passwordHash) {
-        return { status: 401, response: { token: null, auth: false, message: 'Wrong password!' } };
+        return Promise.reject();
       }
       // eslint-disable-next-line no-underscore-dangle
       const token = JWT.sign({ id: user._id, type: user.type }, process.env.JWT_SECRET, {
         expiresIn: 60 * 60 * 24 * 7, // expires in 7 days
       });
-      return { status: 200, response: { auth: true, token } };
+      return { status: 200, response: { token } };
     })
-    .catch(() => {
-      const status = 500;
-      return {
-        status,
-        response: {
-          token: null, auth: false, message: 'can\'t find user',
-        },
-      };
-    });
+    .catch(() => Promise.reject(new Error(JSON.stringify({
+      status: 401,
+      response: {
+        message: 'Invalid username or password',
+      },
+    }))));
 }
 
 /**

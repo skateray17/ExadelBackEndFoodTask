@@ -6,10 +6,14 @@ const router = express.Router();
 router.route('/logon')
   .post((req, res) => {
     if (!req.body || !req.body.email || !req.body.password) {
-      res.status(401).send({ token: null, auth: false, message: 'Wrong data!' });
+      res.status(401).send({ message: 'Invalid username or password' });
     } else {
-      accountController.logon(req.body)
-        .then(response => res.status(response.status).send(response.response));
+      accountController.login(req.body)
+        .then(response => res.status(response.status).send(response.response))
+        .catch((err) => {
+          const message = JSON.parse(err.message);
+          res.status(message.status).send(message.response).end();
+        });
     }
   });
 
@@ -21,7 +25,7 @@ router.route('/logon')
  */
 router.route('/logoff')
   .post((req, res) => {
-    res.status(200).send({ auth: false, token: null });
+    res.status(200).send();
   });
 
 module.exports = router;
