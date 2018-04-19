@@ -10,6 +10,6 @@ router.route('/getUserOrders')
       .then((response) => {
         res.status(response.status).send(response.body);
       })
-      .catch((err) => { res.status(err.status).send(err.body); });
+      .catch((err) => { res.status(500).send(err); });
   });
 module.exports = router;

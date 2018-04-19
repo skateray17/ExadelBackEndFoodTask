@@ -18,11 +18,9 @@ function searchSuitableDays(username, days) {
 }
 
 export default function getOrders(username) {
-  return new Promise((res) => {
-    UserOrders.find({}).then(days =>
-      res({
-        status: 200,
-        body: { result: searchSuitableDays(username, days) },
-      }));
-  });
+  return UserOrders.find({}).then(days => ({
+    status: 200,
+    body: { result: searchSuitableDays(username, days) },
+  }));
 }
+
