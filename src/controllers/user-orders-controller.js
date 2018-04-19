@@ -17,10 +17,13 @@ function searchSuitableDays(username, days) {
   return buffer;
 }
 
-export default function getOrders(username) {
+function getOrders(username) {
   return UserOrders.find({}).then(days => ({
-    status: 200,
-    body: { result: searchSuitableDays(username, days) },
+    result: searchSuitableDays(username, days),
   }));
 }
+
+function addOrder(order) {
+}
+export default { getOrders, addOrder };
 
