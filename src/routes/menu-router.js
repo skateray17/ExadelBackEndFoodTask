@@ -15,7 +15,7 @@ router.route('/addMenu')
           res.status(200).send(response);
         })
         .catch((error) => {
-          res.status(406).send(error);
+          res.status(500).send(error);
         });
     });
   });
@@ -26,7 +26,7 @@ router.route('/getMenu')
         res.status(200).send(response);
       })
       .catch((error) => {
-        res.status(406).send(error);
+        res.status(500).send(error);
       });
   });
 

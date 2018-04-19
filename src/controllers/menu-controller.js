@@ -129,7 +129,7 @@ function addMenu(body) {
     return Menu.findOne(({ date: MENU.date }))
       .then((menu) => {
         if (menu) {
-          throw existError;
+          return Promise.reject(existError);
         } else if (validateMenu(MENU)) {
           const m = new Menu({
             date: MENU.date,
@@ -138,7 +138,7 @@ function addMenu(body) {
           m.save();
           return MENU;
         }
-        throw fileError;
+        return Promise.reject(fileError);
       });
   } catch (e) {
     return Promise.reject(fileError);
