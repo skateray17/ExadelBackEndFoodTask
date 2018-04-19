@@ -10,7 +10,6 @@ dotenv.config();
 const app = express();
 
 mongoose.connect(process.env.CONNECTION_STRING);
-console.log(process.env.CONNECTION_STRING);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
