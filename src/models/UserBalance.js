@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const UserBalanceSchema = new mongoose.Schema({
-  email: String,
+  username: String,
   balance: Number,
 });
 

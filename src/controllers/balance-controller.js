@@ -8,18 +8,19 @@ export default {
 const findError = {
   message: 'user not found',
 };
-function addUserBalance(email) {
-  return UserBalance.findOne({ email }, (user) => {
-    if (user) {
-      return true;
-    }
-    const userBalance = new UserBalance({
-      email,
-      balance: 0,
+function addUserBalance(username) {
+  return UserBalance.findOne({ username })
+    .then((user) => {
+      if (user) {
+        return user.balance;
+      }
+      const userBalance = new UserBalance({
+        username,
+        balance: 0,
+      });
+      userBalance.save();
+      return 0;
     });
-    userBalance.save();
-    return true;
-  });
 }
 function getBalanceList() {
   const BalanceList = [];
@@ -27,19 +28,20 @@ function getBalanceList() {
     .then((users) => {
       users.forEach((user) => {
         BalanceList.push({
-          email: user.email,
+          username: user.username, // Name and Surname using LDAP
           balance: user.balance,
         });
       });
     })
     .then(() => (BalanceList));
 }
-function changeUserBalance(email, balance) {
+function changeUserBalance(name, surname, balance) {
+  const username = name; // get username using Name and Surname with LDAP
   const newData = {
-    email,
+    username,
     balance,
   };
-  return UserBalance.findOneAndUpdate({ email }, newData)
+  return UserBalance.findOneAndUpdate({ username }, newData)
     .then((el) => {
       if (!el) {
         return Promise.reject(findError);
@@ -47,3 +49,6 @@ function changeUserBalance(email, balance) {
       return Promise.resolve();
     });
 }
+addUserBalance('dsa').then((res) => {
+  console.log(res);
+});

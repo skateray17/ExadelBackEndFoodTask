@@ -16,7 +16,7 @@ router.route('/getBalanceList')
   });
 router.route('/changeBalanceList')
   .post((req, res) => {
-    balanceController.changeUserBalance(req.body.email, req.body.balance)
+    balanceController.changeUserBalance(req.body.name, req.body.surname, req.body.balance)
       .then(() => {
         res.status(200).send();
       })
