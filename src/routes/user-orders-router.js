@@ -15,6 +15,9 @@ router.route('/getUserOrders')
 
 router.route('/addOrder')
   .put((req, res) => {
-
+    ordersController.addOrder(req.body).then((response) => {
+      res.status(200).send(response);
+    })
+      .catch((err) => { res.status(500).send(err); });
   });
 module.exports = router;

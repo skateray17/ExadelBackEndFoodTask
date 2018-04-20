@@ -23,7 +23,13 @@ function getOrders(username) {
   }));
 }
 
-function addOrder(order) {
+function addOrder(obj) {
+  return UserOrders.findOneAndUpdate(
+    { date: obj.date },
+    { $push: { orders: obj.order } },
+    { new: true, upsert: true },
+  ).then(() => { });
 }
+
 export default { getOrders, addOrder };
 
