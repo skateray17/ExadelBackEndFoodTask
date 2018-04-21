@@ -27,8 +27,8 @@ function addOrder(obj) {
   return UserOrders.findOneAndUpdate(
     { date: obj.date },
     { $push: { orders: obj.order } },
-    { new: true, upsert: true },
-  ).then(() => { });
+    { new: true },
+  );
 }
 
 export default { getOrders, addOrder };
