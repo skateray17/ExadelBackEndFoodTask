@@ -16,6 +16,8 @@ function addUserBalance(username) {
       }
       const userBalance = new UserBalance({
         username,
+        firstName: 'firstName', // Name and Surname using LDAP
+        lastName: 'lastName',
         balance: 0,
       });
       userBalance.save();
@@ -28,20 +30,21 @@ function getBalanceList() {
     .then((users) => {
       users.forEach((user) => {
         BalanceList.push({
-          username: user.username, // Name and Surname using LDAP
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
           balance: user.balance,
         });
       });
     })
     .then(() => (BalanceList));
 }
-function changeUserBalance(name, surname, balance) {
-  const username = name; // get username using Name and Surname with LDAP
+function changeUserBalance(username, balance) {
   const newData = {
     username,
     balance,
   };
-  return UserBalance.findOneAndUpdate({ username }, newData)
+  return UserBalance.findOneAndUpdate({ username }, { $set: newData })
     .then((el) => {
       if (!el) {
         return Promise.reject(findError);
@@ -49,6 +52,11 @@ function changeUserBalance(name, surname, balance) {
       return Promise.resolve();
     });
 }
-addUserBalance('dsa').then((res) => {
+
+///////////////////////////////////////////////////
+addUserBalance('dsap').then((res) => {
+  console.log(res);
+});
+addUserBalance('dsapq').then((res) => {
   console.log(res);
 });

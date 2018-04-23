@@ -14,9 +14,9 @@ router.route('/getBalanceList')
         res.status(500).send(err);
       });
   });
-router.route('/changeBalanceList')
+router.route('/changeUserBalance')
   .post((req, res) => {
-    balanceController.changeUserBalance(req.body.name, req.body.surname, req.body.balance)
+    balanceController.changeUserBalance(req.body.username, req.body.balance)
       .then(() => {
         res.status(200).send();
       })
