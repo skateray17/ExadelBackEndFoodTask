@@ -153,10 +153,10 @@ function getMenu() {
   return Promise.all([Menu.findOne(({ date: date1 })), Menu.findOne(({ date: date2 }))])
     .then((results) => {
       if (results[0]) {
-        MENUS.push(results[0]);
+        MENUS.push(results[0].menu);
       }
       if (results[1]) {
-        MENUS.push(results[1]);
+        MENUS.push(results[1].menu);
       }
       return MENUS;
     });

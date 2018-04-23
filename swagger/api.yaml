@@ -70,7 +70,7 @@ paths:
         500:
           description: "No such user or some error happend"
         200:
-          description: "Successful logon"
+          description: "Successful operation"
           schema:
             type: "object"
             properties:
@@ -101,3 +101,104 @@ paths:
                                 type: "integer"
                         totalPrice:
                           type: "number"
+  /menu/addMenu:
+    post:
+      consumes:
+        - "multipart/form-data"
+      tags:
+        - "menu"
+      summary: "add new Menu"
+      description: "parse xlsx Menu file, save Menu and return Menu in json"
+      parameters:
+      - in: " formData"
+        name: "body"
+        description: "Needs xlsx Menu file"
+        required: true
+        type: file
+      responses:
+        200:
+          description: "Successfull operation"
+          schema:
+            type: "object"
+            properties:
+              date:
+                type: "string"
+              DAY:
+                type: "object"
+                properties:
+                  day:
+                    type: "string"
+                  menu:
+                    description: "menu on DAY"
+                    type: "array"
+                    items:
+                      type: "object"
+                      properties:
+                        name:
+                          type: "string"
+                        weight:
+                          type: "number"
+                        cost:
+                          type: "number"
+                    common:
+                      type: "object"
+                      properties:
+                        menu:
+                          description: "common menu"
+                          type: "array"
+                          items:
+                            type: "object"
+                            properties:
+                              name:
+                                type: "string"
+                              cost:
+                                type: "number"
+        500:
+          description: "Menu already exists or file error"
+  /menu/getMenu:
+    get:
+      tags:
+        - "menu"
+      summary: "get 2 Menus"
+      description: "return 2 actual Menus in json"
+      responses:
+        200:
+          description: "Successfull operation"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties:
+                date:
+                  type: "string"
+                DAY:
+                  type: "object"
+                  properties:
+                    day:
+                      type: "string"
+                    menu:
+                      description: "menu on DAY"
+                      type: "array"
+                      items:
+                        type: "object"
+                        properties:
+                          name:
+                            type: "string"
+                          weight:
+                            type: "number"
+                          cost:
+                            type: "number"
+                      common:
+                        type: "object"
+                        properties:
+                          menu:
+                            description: "common menu"
+                            type: "array"
+                            items:
+                              type: "object"
+                              properties:
+                                name:
+                                  type: "string"
+                                cost:
+                                  type: "number"
+              
