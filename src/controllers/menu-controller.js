@@ -3,8 +3,11 @@ import Menu from '../models/Menu';
 
 export default {
   addMenu,// eslint-disable-line
-  getMenu,// eslint-disable-line
+  getActualMenus,// eslint-disable-line
+  getMenuByDate,// eslint-disable-line
+  getCommonByDate,// eslint-disable-line
 };
+let actualMenus = [];
 const XLSXDatePlace = 'B1';
 const XLSXDayWord = 'A1';
 const XLSXDay = 'A';
@@ -34,6 +37,13 @@ const existError = {
 const fileError = {
   message: 'file error',
 };
+function compareDates(date1, date2) {
+  if (date1.getDay() === date2.getDay() && date1.getFullYear() === date2.getFullYear()
+    && date1.getMonth() === date2.getMonth()) {
+    return true;
+  }
+  return false;
+}
 function validateFood(el) {
   return el.name && el.cost && typeof el.name === 'string' && typeof el.cost === 'number';
 }
@@ -121,6 +131,28 @@ function makeMenu(book) {
   });
   return MENU;
 }
+function getActualMenus() {
+  return actualMenus;
+}
+function updateMenu() {
+  const date = new Date();
+  const date1 = getStringDate(date);
+  date.setDate((date.getDate() - date.getDay()) + 8);
+  const date2 = getStringDate(date);
+  const MENUS = [];
+  return Promise.all([Menu.findOne(({ date: date1 })), Menu.findOne(({ date: date2 }))])
+    .then((results) => {
+      if (results[0]) {
+        MENUS.push(results[0].menu);
+      }
+      if (results[1]) {
+        MENUS.push(results[1].menu);
+      }
+      actualMenus = MENUS;
+      console.log(actualMenus);
+      return MENUS;
+    });
+}
 function addMenu(body) {
   try {
     let book = XLSX.read(body);
@@ -135,7 +167,9 @@ function addMenu(body) {
             date: MENU.date,
             menu: MENU,
           });
-          m.save();
+          m.save(() => {
+            updateMenu();
+          });
           return MENU;
         }
         return Promise.reject(fileError);
@@ -144,20 +178,40 @@ function addMenu(body) {
     return Promise.reject(fileError);
   }
 }
-function getMenu() {
-  const date = new Date();
-  const date1 = getStringDate(date);
-  date.setDate((date.getDate() - date.getDay()) + 8);
-  const date2 = getStringDate(date);
-  const MENUS = [];
-  return Promise.all([Menu.findOne(({ date: date1 })), Menu.findOne(({ date: date2 }))])
-    .then((results) => {
-      if (results[0]) {
-        MENUS.push(results[0]);
+function getMenuByDate(day) {
+  let menu;
+  actualMenus.forEach((MENU) => {
+    Object.keys(MENU).forEach((el) => {
+      if (el !== 'date' && el !== 'common') {
+        const menuOnDay = MENU[el];
+        if (compareDates(new Date(menuOnDay.day), new Date(day))) {
+          menu = menuOnDay.menu;// eslint-disable-line
+        }
       }
-      if (results[1]) {
-        MENUS.push(results[1]);
-      }
-      return MENUS;
     });
+  });
+  return menu;
 }
+function getCommonByDate(day) {
+  let common;
+  let flag = false;
+  actualMenus.forEach((MENU) => {
+    Object.keys(MENU).forEach((el) => {
+      if (el !== 'date') {
+        const menuOnDay = MENU[el];
+        if (compareDates(new Date(menuOnDay.day), new Date(day))) {
+          flag = true;
+        }
+        if (flag && el === 'common') {
+          common = menuOnDay.menu;
+          flag = false;
+        }
+      }
+    });
+  });
+  return common;
+}
+updateMenu().then(() => {
+  console.log(getMenuByDate(Date().toString()));
+  console.log(getCommonByDate(Date().toString()));
+});

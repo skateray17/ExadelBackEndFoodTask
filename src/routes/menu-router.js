@@ -21,13 +21,8 @@ router.route('/addMenu')
   });
 router.route('/getMenu')
   .get((req, res) => {
-    menuController.getMenu()
-      .then((response) => {
-        res.status(200).send(response);
-      })
-      .catch((error) => {
-        res.status(500).send(error);
-      });
+    const MENUS = menuController.getActualMenus();
+    res.status(200).send(MENUS);
   });
 
 module.exports = router;
