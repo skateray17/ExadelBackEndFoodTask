@@ -201,4 +201,49 @@ paths:
                                   type: "string"
                                 cost:
                                   type: "number"
-              
+  /balance/getBalanceList:
+    get:
+      tags:
+        - "balance"
+      summary: "get Users Balance List"
+      description: "return array of balances"
+      responses:
+        200:
+          description: "Successfull operation"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties:
+                username:
+                  type: "string"
+                firstName:
+                  type: "string"
+                lastName:
+                  type: "string"
+                balance:
+                  type: "number"
+  /balance/updateUserBalance:
+    post:
+      tags:
+        - "balance"
+      summary: "update User Balance"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Needs username and new Balance"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            username:
+              type: "string"
+            balance:
+              type: "number"
+      responses:
+        200:
+          description: "Successfull operation"
+        500:
+          description: "User not found"
+                
+                
