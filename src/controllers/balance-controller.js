@@ -1,14 +1,14 @@
 import UserBalance from '../models/UserBalance';
 
 export default {
-  addUserBalance, // eslint-disable-line
+  checkUserBalance, // eslint-disable-line
   getBalanceList, // eslint-disable-line
-  changeUserBalance, // eslint-disable-line
+  updateUserBalance, // eslint-disable-line
 };
 const findError = {
   message: 'user not found',
 };
-function addUserBalance(username) {
+function checkUserBalance(username) {
   return UserBalance.findOne({ username })
     .then((user) => {
       if (user) {
@@ -39,7 +39,7 @@ function getBalanceList() {
     })
     .then(() => (BalanceList));
 }
-function changeUserBalance(username, balance) {
+function updateUserBalance(username, balance) {
   const newData = {
     username,
     balance,
@@ -54,9 +54,9 @@ function changeUserBalance(username, balance) {
 }
 
 ///////////////////////////////////////////////////
-addUserBalance('dsap').then((res) => {
+checkUserBalance('Eee').then((res) => {
   console.log(res);
 });
-addUserBalance('dsapq').then((res) => {
+checkUserBalance('Aaaaa').then((res) => {
   console.log(res);
 });
