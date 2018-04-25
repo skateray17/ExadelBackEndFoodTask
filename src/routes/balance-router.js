@@ -4,7 +4,7 @@ import balanceController from '../controllers/balance-controller';
 
 const router = express.Router();
 
-router.route('/getBalanceList')
+router.route('/')
   .get((req, res) => {
     balanceController.getBalanceList()
       .then((response) => {
@@ -14,8 +14,8 @@ router.route('/getBalanceList')
         res.status(500).send(err);
       });
   });
-router.route('/updateUserBalance')
-  .post((req, res) => {
+router.route('/')
+  .put((req, res) => {
     balanceController.updateUserBalance(req.body.username, req.body.balance)
       .then(() => {
         res.status(200).send();
