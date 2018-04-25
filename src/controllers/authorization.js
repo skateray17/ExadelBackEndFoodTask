@@ -7,8 +7,7 @@ export default {
 };
 
 function authorize(req, res, next, type) {
-  console.log(1);
-  (req.parsedToken ? new Promise(resolve => resolve(req.parsedToken))
+  (req.parsedToken ? Promise.resolve(req.parsedToken)
     : accountController.untokenize(req.headers.authorization))
     .then((token) => {
       req.parsedToken = token;
