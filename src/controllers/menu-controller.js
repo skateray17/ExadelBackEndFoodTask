@@ -6,6 +6,7 @@ export default {
   getActualMenus,// eslint-disable-line
   getMenuByDate,// eslint-disable-line
   getCommonByDate,// eslint-disable-line
+  markOrder,// eslint-disable-line
 };
 let actualMenus = [];
 const XLSXDatePlace = 'B1';
@@ -53,7 +54,7 @@ function validateDayItem(dayItem) {
 function validateMenuItem(menuItem) {
   if (Object.keys(menuItem).some((e) => {
     const dayItem = menuItem[e];
-    if (dayItem instanceof Date) {
+    if (dayItem instanceof Date || e === 'available') {
       return false;
     }
     return validateDayItem(dayItem);
@@ -87,7 +88,7 @@ function getStringDate(d) {
 function validateMenu(menu) {
   return typeof menu.date === 'string' && !Object.keys(menu).some((el) => {
     const menuItem = menu[el];
-    if (typeof menuItem === 'string') {
+    if (el === 'date') {
       return false;
     }
     if (menuItem) {
@@ -110,6 +111,7 @@ function makeMenu(book) {
       if (+date[0] + +Day[currentDate]) {
         MENU[currentDate] = {
           day: new Date(date[2], date[1] - 1, +date[0] + +Day[currentDate]),
+          available: true,
           menu: [],
         };
       } else {
@@ -149,7 +151,6 @@ function updateMenu() {
         MENUS.push(results[1].menu);
       }
       actualMenus = MENUS;
-      console.log(actualMenus);
       return MENUS;
     });
 }
@@ -182,11 +183,9 @@ function getMenuByDate(day) {
   let menu;
   actualMenus.forEach((MENU) => {
     Object.keys(MENU).forEach((el) => {
-      if (el !== 'date' && el !== 'common') {
-        const menuOnDay = MENU[el];
-        if (compareDates(new Date(menuOnDay.day), new Date(day))) {
-          menu = menuOnDay.menu;// eslint-disable-line
-        }
+      const menuOnDay = MENU[el];
+      if (menuOnDay.day && compareDates(new Date(menuOnDay.day), new Date(day))) {
+        menu = menuOnDay.menu;// eslint-disable-line
       }
     });
   });
@@ -199,7 +198,7 @@ function getCommonByDate(day) {
     Object.keys(MENU).forEach((el) => {
       if (el !== 'date') {
         const menuOnDay = MENU[el];
-        if (compareDates(new Date(menuOnDay.day), new Date(day))) {
+        if (menuOnDay.day && compareDates(new Date(menuOnDay.day), new Date(day))) {
           flag = true;
         }
         if (flag && el === 'common') {
@@ -210,6 +209,28 @@ function getCommonByDate(day) {
     });
   });
   return common;
+}
+function markOrder(date) {
+  return Menu.find()
+    .then((MENUS) => {
+      MENUS.forEach((el) => {
+        Object.keys(el.menu).forEach((e) => {
+          const menuOnDate = el.menu[e];
+          if (menuOnDate.day && compareDates(new Date(menuOnDate.day), new Date(date))) {
+            menuOnDate.available = false;
+            const m = el.menu;
+            m[e] = menuOnDate;
+            Menu.findOneAndUpdate(
+              { date: el.date },
+              { $set: { menu: m } },
+            )
+              .then(() => {
+                updateMenu();
+              });
+          }
+        });
+      });
+    });
 }
 updateMenu().then(() => {
   console.log(getMenuByDate(Date().toString()));
