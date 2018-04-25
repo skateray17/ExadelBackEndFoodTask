@@ -3,7 +3,7 @@ import menuController from '../controllers/menu-controller';
 
 const router = express.Router();
 
-router.route('/addMenu')
+router.route('/')
   .post((req, res) => {
     const buffer = [];
     req.on('data', (chunk) => {
@@ -19,7 +19,7 @@ router.route('/addMenu')
         });
     });
   });
-router.route('/getMenu')
+router.route('/')
   .get((req, res) => {
     const MENUS = menuController.getActualMenus();
     res.status(200).send(MENUS);
