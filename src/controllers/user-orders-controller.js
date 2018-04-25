@@ -1,62 +1,56 @@
 import UserOrders from '../models/UserOrders';
 import MenuLogic from '../controllers/menu-controller';
 
-function searchSuitableDays(username, days) {
-  const buffer = [];
-  days.forEach((day) => {
-    const dayOrder = day.orders.find((order) => {
-      if (order.username === username) {
-        return true;
-      }
-      return false;
-    });
-    if (dayOrder !== undefined) {
-      buffer.push({ order: dayOrder, date: day.date });
-    }
-  });
-  return buffer;
-}
-
-function getOrders(username) {
-  return UserOrders.find({}).then(days => ({
-    result: searchSuitableDays(username, days),
+function getOrders(
+  username, startDate = new Date(new Date().setDate(new Date().getDate() - 8)),
+  endDate = new Date(new Date().setDate(new Date().getDate() + 8)),
+) {
+  return UserOrders.findOne({ username }).then(user => ({
+    result: user.days.filter((item) => {
+      console.log(item.date.getTime() > startDate.getTime());
+      return item.date.getTime() > startDate.getTime()
+        && item.date.getTime() < endDate.getTime();
+    }),
   }));
 }
+
 function validateOrder(order) {
-  const MENU = MenuLogic.getMenu();
-  let sum = 0;
-  return Object.values(MENU.menu).some((item) => {
-    if (item.day === order.date) {
-      const availableItemsForOrder = item.menu.concat(MENU.menu.common.menu);
-      return order.order.dishList.every(dish => availableItemsForOrder.some((itemForOrder) => {
-        if (itemForOrder.name === dish.dishTitle) {
-          sum += itemForOrder.cost * dish.amount;
-          return true;
-        }
-        return false;
-      }));
+  return new Promise((resolve, rej) => {
+    const tmpDate = new Date(order.date);
+    const now = new Date();
+    const maxTime = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7);
+    const minTime = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const currentDate = new Date(tmpDate.getFullYear(), tmpDate.getMonth(), tmpDate.getDate());
+    const MENU = MenuLogic.getCommonByDate(currentDate).concat(MenuLogic.getMenuByDate(currentDate));
+
+
+    let sum = 0;
+    if (currentDate.getTime() <= maxTime.getTime() && currentDate.getTime() > minTime.getTime() &&
+        order.dishList.every(dish => MENU.some((menuPoint) => {
+          if (dish.dishTitle === menuPoint.name) {
+            sum += dish.amount * menuPoint.cost;
+            return true;
+          }
+          return false;
+        }))) {
+      resolve({ dishList: order.dishList, date: currentDate, totalPrice: sum });
     }
-    return false;
-  }) && sum === order.order.totalPrice;
+    rej(new Error());
+  });
 }
 
-function addOrder(obj) {
-  if (validateOrder(obj)) {
-    return UserOrders.findOneAndUpdate(
-      { date: obj.date },
-      {
-        $set: {
-          orders: {
-            username: obj.order.username,
-            dishList: obj.order.dishList,
-            totalPrice: obj.order.totalPrice,
-          },
-        },
-      },
-      { new: true, upsert: true },
-    );
-  }
-  return new Error('Invalid order or there is no suitable menu');
+
+function addOrder(order) {
+  return validateOrder(order).then(obj => UserOrders.findOneAndUpdate(
+    { username: order.username },
+    { $pull: { days: { date: obj.date } } },
+  ).then(() => UserOrders.findOneAndUpdate(
+    { username: order.username }, {
+      $push: { days: obj },
+    },
+    { new: true },
+  ))).catch(err => err);
 }
+
 export default { getOrders, addOrder };
 
