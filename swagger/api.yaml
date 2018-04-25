@@ -101,7 +101,7 @@ paths:
                                 type: "integer"
                         totalPrice:
                           type: "number"
-  /menu/addMenu:
+  /menu:
     post:
       consumes:
         - "multipart/form-data"
@@ -155,7 +155,6 @@ paths:
                                 type: "number"
         500:
           description: "Menu already exists or file error"
-  /menu/getMenu:
     get:
       tags:
         - "menu"
@@ -201,7 +200,7 @@ paths:
                                   type: "string"
                                 cost:
                                   type: "number"
-  /balance/getBalanceList:
+  /balance:
     get:
       tags:
         - "balance"
@@ -223,8 +222,7 @@ paths:
                   type: "string"
                 balance:
                   type: "number"
-  /balance/updateUserBalance:
-    post:
+    put:
       tags:
         - "balance"
       summary: "update User Balance"
