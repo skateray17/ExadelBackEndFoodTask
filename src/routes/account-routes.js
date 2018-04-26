@@ -3,7 +3,7 @@ import accountController from '../controllers/account-controller';
 
 const router = express.Router();
 
-router.route('/logon')
+router.route('/login')
   .post((req, res) => {
     if (!req.body || !req.body.email || !req.body.password) {
       res.status(401).send({ message: 'Invalid username or password' });

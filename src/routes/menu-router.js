@@ -1,9 +1,11 @@
 import express from 'express';
 import menuController from '../controllers/menu-controller';
+import authorization from '../controllers/authorization';
 
 const router = express.Router();
 
 router.route('/')
+  .post(authorization.authorizeAdmin)
   .post((req, res) => {
     const buffer = [];
     req.on('data', (chunk) => {
