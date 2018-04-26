@@ -15,12 +15,12 @@ schemes:
 - "http"
 basePath: "/api"
 paths:
-  /account/logon:
+  /account/login:
     post:
       tags:
       - "authentication"
-      summary: "logon an user"
-      description: "service for logon"
+      summary: "login an user"
+      description: "service for login"
       consumes:
       - "application/json"
       - "application/x-www-form-urlencoded"
@@ -41,7 +41,7 @@ paths:
         401:
           description: "Invalid input"
         200:
-          description: "Successful logon"
+          description: "Successful login"
           schema:
             type: "object"
             properties:
