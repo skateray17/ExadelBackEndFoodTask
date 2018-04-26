@@ -10,13 +10,6 @@ router.route('/')
     accountController.findUsers(req.query.str)
       .then(arr => res.status(200).send({ arr }))
       .catch(err => res.status(500).send(err));
-  })
-  .post((req, res) => {
-    accountController.addUser(
-      req.body.email, req.body.password,
-      req.body.firstName, req.body.lastName, 10,
-    );
-    res.status(200).send();
   });
 
 module.exports = router;
