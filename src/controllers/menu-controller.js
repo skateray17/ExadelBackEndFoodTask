@@ -8,6 +8,7 @@ export default {
   getCommonByDate,// eslint-disable-line
   markOrder,// eslint-disable-line
 };
+
 let actualMenus = [];
 const XLSXDatePlace = 'B1';
 const XLSXDayWord = 'A1';
@@ -38,30 +39,13 @@ const existError = {
 const fileError = {
   message: 'file error',
 };
-const dateError = {
-  message: 'invalid date',
-};
+
+/**
+ * functions for working with Dates
+ */
 function compareDates(date1, date2) {
   if (date1.getDate() === date2.getDate() && date1.getFullYear() === date2.getFullYear()
     && date1.getMonth() === date2.getMonth()) {
-    return true;
-  }
-  return false;
-}
-function validateFood(el) {
-  return el.name && el.cost && typeof el.name === 'string' && typeof el.cost === 'number';
-}
-function validateDayItem(dayItem) {
-  return dayItem.some(el => !validateFood(el));
-}
-function validateMenuItem(menuItem) {
-  if (Object.keys(menuItem).some((e) => {
-    const dayItem = menuItem[e];
-    if (dayItem instanceof Date || e === 'available') {
-      return false;
-    }
-    return validateDayItem(dayItem);
-  })) {
     return true;
   }
   return false;
@@ -88,6 +72,27 @@ function getStringDate(d) {
   dateString += `${day}.${month}.${date.getFullYear()}`;
   return dateString;
 }
+/**
+ * functions for validating new Menu
+ */
+function validateFood(el) {
+  return el.name && el.cost && typeof el.name === 'string' && typeof el.cost === 'number';
+}
+function validateDayItem(dayItem) {
+  return dayItem.some(el => !validateFood(el));
+}
+function validateMenuItem(menuItem) {
+  if (Object.keys(menuItem).some((e) => {
+    const dayItem = menuItem[e];
+    if (dayItem instanceof Date || e === 'available') {
+      return false;
+    }
+    return validateDayItem(dayItem);
+  })) {
+    return true;
+  }
+  return false;
+}
 function validateMenu(menu) {
   return typeof menu.date === 'string' && !Object.keys(menu).some((el) => {
     const menuItem = menu[el];
@@ -100,6 +105,33 @@ function validateMenu(menu) {
     return true;
   });
 }
+/**
+ * functions for working with Cached Menus
+ */
+function getActualMenus() {
+  return actualMenus;
+}
+function updateCachedMenu() {
+  const date = new Date();
+  const date1 = getStringDate(date);
+  date.setDate((date.getDate() - date.getDay()) + 8);
+  const date2 = getStringDate(date);
+  const MENUS = [];
+  return Promise.all([Menu.findOne(({ date: date1 })), Menu.findOne(({ date: date2 }))])
+    .then((results) => {
+      if (results[0]) {
+        MENUS.push(results[0].menu);
+      }
+      if (results[1]) {
+        MENUS.push(results[1].menu);
+      }
+      actualMenus = MENUS;
+      return MENUS;
+    });
+}
+/**
+ * functions for adding new Menu
+ */
 function makeMenu(book) {
   let date;
   let currentDate;
@@ -136,27 +168,6 @@ function makeMenu(book) {
   });
   return MENU;
 }
-function getActualMenus() {
-  return actualMenus;
-}
-function updateMenu() {
-  const date = new Date();
-  const date1 = getStringDate(date);
-  date.setDate((date.getDate() - date.getDay()) + 8);
-  const date2 = getStringDate(date);
-  const MENUS = [];
-  return Promise.all([Menu.findOne(({ date: date1 })), Menu.findOne(({ date: date2 }))])
-    .then((results) => {
-      if (results[0]) {
-        MENUS.push(results[0].menu);
-      }
-      if (results[1]) {
-        MENUS.push(results[1].menu);
-      }
-      actualMenus = MENUS;
-      return MENUS;
-    });
-}
 function addMenu(body) {
   try {
     let book = XLSX.read(body);
@@ -172,7 +183,7 @@ function addMenu(body) {
             menu: MENU,
           });
           m.save(() => {
-            updateMenu();
+            updateCachedMenu();
           });
           return MENU;
         }
@@ -182,26 +193,29 @@ function addMenu(body) {
     return Promise.reject(fileError);
   }
 }
-function getMenuByDate(day) {
+/**
+ * special functions for Orders Services
+ */
+function getMenuByDate(date) {
   let menu;
   actualMenus.forEach((MENU) => {
     Object.keys(MENU).forEach((el) => {
       const menuOnDay = MENU[el];
-      if (menuOnDay.day && compareDates(new Date(menuOnDay.day), new Date(day))) {
+      if (menuOnDay.day && compareDates(new Date(menuOnDay.day), new Date(date))) {
         menu = menuOnDay.menu;// eslint-disable-line
       }
     });
   });
   return menu;
 }
-function getCommonByDate(day) {
+function getCommonByDate(date) {
   let common;
   let flag = false;
   actualMenus.forEach((MENU) => {
     Object.keys(MENU).forEach((el) => {
       if (el !== 'date') {
         const menuOnDay = MENU[el];
-        if (menuOnDay.day && compareDates(new Date(menuOnDay.day), new Date(day))) {
+        if (menuOnDay.day && compareDates(new Date(menuOnDay.day), new Date(date))) {
           flag = true;
         }
         if (flag && el === 'common') {
@@ -213,36 +227,34 @@ function getCommonByDate(day) {
   });
   return common;
 }
+
+/**
+ * functions for deactivating today's Menu
+ */
+function markDayInMenu(MENU, date) {
+  Object.keys(MENU.menu).forEach((e) => {
+    const menuOnDate = MENU.menu[e];
+    if (menuOnDate.day && compareDates(new Date(menuOnDate.day), new Date(date))) {
+      menuOnDate.available = false;
+      const m = MENU.menu;
+      m[e] = menuOnDate;
+      Menu.findOneAndUpdate(
+        { date: MENU.date },
+        { $set: { menu: m } },
+      ).then(() => {
+        updateCachedMenu();
+      });
+    }
+  });
+}
 function markOrder() {
   const date = new Date();
-  let flag = false;
   return Menu.find()
     .then((MENUS) => {
       MENUS.forEach((el) => {
-        Object.keys(el.menu).forEach((e) => {
-          const menuOnDate = el.menu[e];
-          if (menuOnDate.day && compareDates(new Date(menuOnDate.day), new Date(date))) {
-            flag = true;
-            menuOnDate.available = false;
-            const m = el.menu;
-            m[e] = menuOnDate;
-            Menu.findOneAndUpdate(
-              { date: el.date },
-              { $set: { menu: m } },
-            )
-              .then(() => {
-                updateMenu();
-              });
-          }
-        });
+        markDayInMenu(el, date);
       });
-      if (!flag) {
-        return Promise.reject(dateError);
-      }
-      return Promise.resolve();
     });
 }
-updateMenu().then(() => {
-  //console.log(getMenuByDate(Date().toString()));
-  //console.log(getCommonByDate(Date().toString()));
-});
+
+updateCachedMenu();

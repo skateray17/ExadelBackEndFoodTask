@@ -18,8 +18,7 @@ router.route('/')
           res.status(500).send(error);
         });
     });
-  });
-router.route('/')
+  })
   .get((req, res) => {
     const MENUS = menuController.getActualMenus();
     res.status(200).send(MENUS);
