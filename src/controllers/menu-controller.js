@@ -38,8 +38,11 @@ const existError = {
 const fileError = {
   message: 'file error',
 };
+const dateError = {
+  message: 'invalid date',
+};
 function compareDates(date1, date2) {
-  if (date1.getDay() === date2.getDay() && date1.getFullYear() === date2.getFullYear()
+  if (date1.getDate() === date2.getDate() && date1.getFullYear() === date2.getFullYear()
     && date1.getMonth() === date2.getMonth()) {
     return true;
   }
@@ -210,13 +213,16 @@ function getCommonByDate(day) {
   });
   return common;
 }
-function markOrder(date) {
+function markOrder() {
+  const date = new Date();
+  let flag = false;
   return Menu.find()
     .then((MENUS) => {
       MENUS.forEach((el) => {
         Object.keys(el.menu).forEach((e) => {
           const menuOnDate = el.menu[e];
           if (menuOnDate.day && compareDates(new Date(menuOnDate.day), new Date(date))) {
+            flag = true;
             menuOnDate.available = false;
             const m = el.menu;
             m[e] = menuOnDate;
@@ -230,9 +236,13 @@ function markOrder(date) {
           }
         });
       });
+      if (!flag) {
+        return Promise.reject(dateError);
+      }
+      return Promise.resolve();
     });
 }
 updateMenu().then(() => {
-  console.log(getMenuByDate(Date().toString()));
-  console.log(getCommonByDate(Date().toString()));
+  //console.log(getMenuByDate(Date().toString()));
+  //console.log(getCommonByDate(Date().toString()));
 });

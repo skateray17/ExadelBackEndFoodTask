@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.route('/')
   .put((req, res) => {
-    menuController.markOrder(req.body.date)
+    menuController.markOrder()
       .then((response) => {
         res.status(200).send(response);
       })
