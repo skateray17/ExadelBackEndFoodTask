@@ -6,6 +6,7 @@ import accountRouter from './routes/account-routes';
 import menuRouter from './routes/menu-router';
 import orderRouter from './routes/user-orders-router';
 import authorization from './controllers/authorization';
+import usersRouter from './routes/users-router';
 
 dotenv.config();
 const app = express();
@@ -18,6 +19,7 @@ app.use('/api/account', accountRouter);
 app.use('/api/', authorization.authorizeUser);
 app.use('/api/menu', menuRouter);
 app.use('/api/order', orderRouter);
+app.use('/api/users', usersRouter);
 
 const server = app.listen(process.env.CONNECTION_PORT, () => {
   console.log(`Server listening on port ${server.address().port}`);
