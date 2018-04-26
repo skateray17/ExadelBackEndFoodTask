@@ -25,19 +25,7 @@ function checkUserBalance(username) {
     });
 }
 function getBalanceList() {
-  const BalanceList = [];
-  return UserBalance.find()
-    .then((users) => {
-      users.forEach((user) => {
-        BalanceList.push({
-          username: user.username,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          balance: user.balance,
-        });
-      });
-    })
-    .then(() => (BalanceList));
+  return UserBalance.find();
 }
 function updateUserBalance(username, balance) {
   const newData = {
