@@ -5,6 +5,7 @@ import bodyParser from 'body-parser';
 import accountRouter from './routes/account-routes';
 import menuRouter from './routes/menu-router';
 import orderRouter from './routes/user-orders-router';
+import balanceRouter from './routes/balance-router';
 import authorization from './controllers/authorization';
 import usersRouter from './routes/users-router';
 
@@ -20,6 +21,7 @@ app.use('/api/', authorization.authorizeUser);
 app.use('/api/menu', menuRouter);
 app.use('/api/order', orderRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/balance', balanceRouter);
 
 const server = app.listen(process.env.CONNECTION_PORT, () => {
   console.log(`Server listening on port ${server.address().port}`);
