@@ -1,9 +1,13 @@
 import UserOrders from '../models/UserOrders';
-import MenuLogic from '../controllers/menu-controller';
+import MenuController from '../controllers/menu-controller';
+
+function getRefactoredDate(date, daysToAdd) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + daysToAdd);
+}
 
 function getOrders(
-  username, startDate = new Date(new Date().setDate(new Date().getDate() - 8)),
-  endDate = new Date(new Date().setDate(new Date().getDate() + 8)),
+  username, startDate = getRefactoredDate(new Date(), 0),
+  endDate = getRefactoredDate(new Date(), 8),
 ) {
   return UserOrders.findOne({ username }).then(user => ({
     result: user.days.filter((item) => {
@@ -14,18 +18,14 @@ function getOrders(
   }));
 }
 
-function validateOrder(order) {
-  return new Promise((resolve, rej) => {
-    const tmpDate = new Date(order.date);
-    const now = new Date();
-    const maxTime = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7);
-    const minTime = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const currentDate = new Date(tmpDate.getFullYear(), tmpDate.getMonth(), tmpDate.getDate());
-    const MENU = MenuLogic.getCommonByDate(currentDate).concat(MenuLogic.getMenuByDate(currentDate));
+function isOrderValid(order, currentDate) {
+  const maxTime = getRefactoredDate(new Date(), 7);
+  const minTime = getRefactoredDate(new Date(), 0);
+  let sum = 0;
+  const MENU = MenuController.getCommonByDate(currentDate)
+    .concat(MenuController.getMenuByDate(currentDate));
 
-
-    let sum = 0;
-    if (currentDate.getTime() <= maxTime.getTime() && currentDate.getTime() > minTime.getTime() &&
+  if (currentDate.getTime() <= maxTime.getTime() && currentDate.getTime() > minTime.getTime() &&
         order.dishList.every(dish => MENU.some((menuPoint) => {
           if (dish.dishTitle === menuPoint.name) {
             sum += dish.amount * menuPoint.cost;
@@ -33,12 +33,19 @@ function validateOrder(order) {
           }
           return false;
         }))) {
-      resolve({ dishList: order.dishList, date: currentDate, totalPrice: sum });
-    }
-    rej(new Error());
-  });
+    return sum;
+  }
+  return 0;
 }
 
+function validateOrder(order) {
+  const currentDate = getRefactoredDate(new Date(order.date), 0);
+  const sum = isOrderValid(order, currentDate);
+  if (sum) {
+    return Promise.resolve({ dishList: order.dishList, date: currentDate, totalPrice: sum });
+  }
+  return Promise.reject(new Error());
+}
 
 function addOrder(order) {
   return validateOrder(order).then(obj => UserOrders.findOneAndUpdate(
