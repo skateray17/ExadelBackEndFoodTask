@@ -16,7 +16,14 @@ function crypt(message, salt) {
 }
 
 function untokenize(token) {
-  return JWT.verify(token, process.env.JWT_SECRET);
+  return new Promise((resolve, reject) => {
+    JWT.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+      if (err || !decodedToken) {
+        return reject(err);
+      }
+      return resolve(decodedToken);
+    });
+  });
 }
 
 function login(req) {
@@ -30,7 +37,7 @@ function login(req) {
       const token = JWT.sign({ id: user._id, type: user.type }, process.env.JWT_SECRET, {
         expiresIn: 60 * 60 * 24 * 7, // expires in 7 days
       });
-      return { status: 200, response: { token } };
+      return { status: 200, response: { token, username: user.name, type: user.type } };
     })
     .catch(() => Promise.reject(new Error(JSON.stringify({
       status: 401,
