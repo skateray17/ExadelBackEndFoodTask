@@ -50,12 +50,14 @@ function compareDates(date1, date2) {
   }
   return false;
 }
+
 function addZero(num) {
   if (num < 10) {
     return `0${num}`;
   }
   return num;
 }
+
 function getStringDate(d) {
   const date = new Date(d);
   let day = (date.getDate() - date.getDay()) + 1;
@@ -72,15 +74,18 @@ function getStringDate(d) {
   dateString += `${day}.${month}.${date.getFullYear()}`;
   return dateString;
 }
+
 /**
  * functions for validating new Menu
  */
 function validateFood(el) {
   return el.name && el.cost && typeof el.name === 'string' && typeof el.cost === 'number';
 }
+
 function validateDayItem(dayItem) {
   return dayItem.some(el => !validateFood(el));
 }
+
 function validateMenuItem(menuItem) {
   if (Object.keys(menuItem).some((e) => {
     const dayItem = menuItem[e];
@@ -93,6 +98,7 @@ function validateMenuItem(menuItem) {
   }
   return false;
 }
+
 function validateMenu(menu) {
   return typeof menu.date === 'string' && !Object.keys(menu).some((el) => {
     const menuItem = menu[el];
@@ -105,12 +111,14 @@ function validateMenu(menu) {
     return true;
   });
 }
+
 /**
  * functions for working with Cached Menus
  */
 function getActualMenus() {
   return actualMenus;
 }
+
 function updateCachedMenu() {
   const date = new Date();
   const date1 = getStringDate(date);
@@ -129,6 +137,7 @@ function updateCachedMenu() {
       return MENUS;
     });
 }
+
 /**
  * functions for adding new Menu
  */
@@ -168,6 +177,7 @@ function makeMenu(book) {
   });
   return MENU;
 }
+
 function addMenu(body) {
   try {
     let book = XLSX.read(body);
@@ -193,6 +203,7 @@ function addMenu(body) {
     return Promise.reject(fileError);
   }
 }
+
 /**
  * special functions for Orders Services
  */
@@ -208,6 +219,7 @@ function getMenuByDate(date) {
   });
   return menu;
 }
+
 function getCommonByDate(date) {
   let common;
   let flag = false;
@@ -247,6 +259,7 @@ function markDayInMenu(MENU, date) {
     }
   });
 }
+
 function markOrder() {
   const date = new Date();
   return Menu.find()
