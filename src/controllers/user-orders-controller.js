@@ -10,11 +10,8 @@ function getOrders(
   endDate = getRefactoredDate(new Date(), 8),
 ) {
   return UserOrders.findOne({ username }).then(user => ({
-    result: user.days.filter((item) => {
-      console.log(item.date.getTime() > startDate.getTime());
-      return item.date.getTime() > startDate.getTime()
-        && item.date.getTime() < endDate.getTime();
-    }),
+    result: user.days.filter(item => item.date.getTime() > startDate.getTime()
+        && item.date.getTime() < endDate.getTime()),
   }));
 }
 
@@ -58,6 +55,5 @@ function addOrder(order) {
     { new: true },
   ))).catch(err => err);
 }
-
 export default { getOrders, addOrder };
 

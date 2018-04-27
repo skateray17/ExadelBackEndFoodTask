@@ -4,7 +4,7 @@ import ordersController from '../controllers/user-orders-controller';
 
 const router = express.Router();
 
-router.route('/getUserOrders')
+router.route('/')
   .get((req, res) => {
     ordersController.getOrders(req.query.username)
       .then((response) => {
@@ -13,7 +13,7 @@ router.route('/getUserOrders')
       .catch((err) => { res.status(500).send(err); });
   });
 
-router.route('/addOrder')
+router.route('/')
   .put((req, res) => {
     ordersController.addOrder(req.body).then((response) => {
       res.status(200).send(response);
