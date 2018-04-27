@@ -1,12 +1,13 @@
 import express from 'express';
 import ordersController from '../controllers/user-orders-controller';
-
+import User from '../models/User';
 
 const router = express.Router();
 
 router.route('/getUserOrders')
   .get((req, res) => {
-    ordersController.getOrders(req.query.username)
+    User.findById({ _id: req.parsedToken.id })
+      .then(user => ordersController.getOrders(user.email))
       .then((response) => {
         res.status(200).send(response);
       })

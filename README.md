@@ -13,3 +13,8 @@
 
 Для запуска сервера выполняется
 `$ npm run start`
+
+Для запуска SWAGGER'а выполняется
+ `$ npm run start`,
+ затем в браузере открывается 
+  `localhost:CONNECTION_PORT/swagger/index.html`
