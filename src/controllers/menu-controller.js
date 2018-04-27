@@ -3,8 +3,13 @@ import Menu from '../models/Menu';
 
 export default {
   addMenu,// eslint-disable-line
-  getMenu,// eslint-disable-line
+  getActualMenus,// eslint-disable-line
+  getMenuByDate,// eslint-disable-line
+  getCommonByDate,// eslint-disable-line
+  markOrder,// eslint-disable-line
 };
+
+let actualMenus = [];
 const XLSXDatePlace = 'B1';
 const XLSXDayWord = 'A1';
 const XLSXDay = 'A';
@@ -34,30 +39,25 @@ const existError = {
 const fileError = {
   message: 'file error',
 };
-function validateFood(el) {
-  return el.name && el.cost && typeof el.name === 'string' && typeof el.cost === 'number';
-}
-function validateDayItem(dayItem) {
-  return dayItem.some(el => !validateFood(el));
-}
-function validateMenuItem(menuItem) {
-  if (Object.keys(menuItem).some((e) => {
-    const dayItem = menuItem[e];
-    if (dayItem instanceof Date) {
-      return false;
-    }
-    return validateDayItem(dayItem);
-  })) {
+
+/**
+ * functions for working with Dates
+ */
+function compareDates(date1, date2) {
+  if (date1.getDate() === date2.getDate() && date1.getFullYear() === date2.getFullYear()
+    && date1.getMonth() === date2.getMonth()) {
     return true;
   }
   return false;
 }
+
 function addZero(num) {
   if (num < 10) {
     return `0${num}`;
   }
   return num;
 }
+
 function getStringDate(d) {
   const date = new Date(d);
   let day = (date.getDate() - date.getDay()) + 1;
@@ -74,10 +74,35 @@ function getStringDate(d) {
   dateString += `${day}.${month}.${date.getFullYear()}`;
   return dateString;
 }
+
+/**
+ * functions for validating new Menu
+ */
+function validateFood(el) {
+  return el.name && el.cost && typeof el.name === 'string' && typeof el.cost === 'number';
+}
+
+function validateDayItem(dayItem) {
+  return dayItem.some(el => !validateFood(el));
+}
+
+function validateMenuItem(menuItem) {
+  if (Object.keys(menuItem).some((e) => {
+    const dayItem = menuItem[e];
+    if (dayItem instanceof Date || e === 'available') {
+      return false;
+    }
+    return validateDayItem(dayItem);
+  })) {
+    return true;
+  }
+  return false;
+}
+
 function validateMenu(menu) {
   return typeof menu.date === 'string' && !Object.keys(menu).some((el) => {
     const menuItem = menu[el];
-    if (typeof menuItem === 'string') {
+    if (el === 'date') {
       return false;
     }
     if (menuItem) {
@@ -86,6 +111,36 @@ function validateMenu(menu) {
     return true;
   });
 }
+
+/**
+ * functions for working with Cached Menus
+ */
+function getActualMenus() {
+  return actualMenus;
+}
+
+function updateCachedMenu() {
+  const date = new Date();
+  const date1 = getStringDate(date);
+  date.setDate((date.getDate() - date.getDay()) + 8);
+  const date2 = getStringDate(date);
+  const MENUS = [];
+  return Promise.all([Menu.findOne(({ date: date1 })), Menu.findOne(({ date: date2 }))])
+    .then((results) => {
+      if (results[0]) {
+        MENUS.push(results[0].menu);
+      }
+      if (results[1]) {
+        MENUS.push(results[1].menu);
+      }
+      actualMenus = MENUS;
+      return MENUS;
+    });
+}
+
+/**
+ * functions for adding new Menu
+ */
 function makeMenu(book) {
   let date;
   let currentDate;
@@ -100,6 +155,7 @@ function makeMenu(book) {
       if (+date[0] + +Day[currentDate]) {
         MENU[currentDate] = {
           day: new Date(date[2], date[1] - 1, +date[0] + +Day[currentDate]),
+          available: true,
           menu: [],
         };
       } else {
@@ -121,6 +177,7 @@ function makeMenu(book) {
   });
   return MENU;
 }
+
 function addMenu(body) {
   try {
     let book = XLSX.read(body);
@@ -135,7 +192,9 @@ function addMenu(body) {
             date: MENU.date,
             menu: MENU,
           });
-          m.save();
+          m.save(() => {
+            updateCachedMenu();
+          });
           return MENU;
         }
         return Promise.reject(fileError);
@@ -144,20 +203,71 @@ function addMenu(body) {
     return Promise.reject(fileError);
   }
 }
-function getMenu() {
+
+/**
+ * special functions for Orders Services
+ */
+function getMenuByDate(date) {
+  let menu;
+  actualMenus.forEach((MENU) => {
+    Object.keys(MENU).forEach((el) => {
+      const menuOnDay = MENU[el];
+      if (menuOnDay.day && compareDates(new Date(menuOnDay.day), new Date(date))) {
+        menu = menuOnDay.menu;// eslint-disable-line
+      }
+    });
+  });
+  return menu;
+}
+
+function getCommonByDate(date) {
+  let common;
+  let flag = false;
+  actualMenus.forEach((MENU) => {
+    Object.keys(MENU).forEach((el) => {
+      if (el !== 'date') {
+        const menuOnDay = MENU[el];
+        if (menuOnDay.day && compareDates(new Date(menuOnDay.day), new Date(date))) {
+          flag = true;
+        }
+        if (flag && el === 'common') {
+          common = menuOnDay.menu;
+          flag = false;
+        }
+      }
+    });
+  });
+  return common;
+}
+
+/**
+ * functions for deactivating today's Menu
+ */
+function markDayInMenu(MENU, date) {
+  Object.keys(MENU.menu).forEach((e) => {
+    const menuOnDate = MENU.menu[e];
+    if (menuOnDate.day && compareDates(new Date(menuOnDate.day), new Date(date))) {
+      menuOnDate.available = false;
+      const m = MENU.menu;
+      m[e] = menuOnDate;
+      Menu.findOneAndUpdate(
+        { date: MENU.date },
+        { $set: { menu: m } },
+      ).then(() => {
+        updateCachedMenu();
+      });
+    }
+  });
+}
+
+function markOrder() {
   const date = new Date();
-  const date1 = getStringDate(date);
-  date.setDate((date.getDate() - date.getDay()) + 8);
-  const date2 = getStringDate(date);
-  const MENUS = [];
-  return Promise.all([Menu.findOne(({ date: date1 })), Menu.findOne(({ date: date2 }))])
-    .then((results) => {
-      if (results[0]) {
-        MENUS.push(results[0].menu);
-      }
-      if (results[1]) {
-        MENUS.push(results[1].menu);
-      }
-      return MENUS;
+  return Menu.find()
+    .then((MENUS) => {
+      MENUS.forEach((el) => {
+        markDayInMenu(el, date);
+      });
     });
 }
+
+updateCachedMenu();
