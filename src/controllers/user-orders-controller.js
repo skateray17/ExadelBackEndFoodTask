@@ -23,7 +23,25 @@ function getOrders(username) {
   }));
 }
 
-function addOrder(order) {
+function getOrdersForDate(date) {
+  return UserOrders.find({}).then((users) => {
+    const result = [];
+    users.forEach((user) => {
+      user.days.forEach((day) => {
+        if (new Date(day.date).getTime() === date.getTime()) {
+          result.push({
+            username: user.username,
+            dishList: day.dishList,
+            totalPrice: day.totalPrice,
+          });
+        }
+      });
+    });
+    return result;
+  });
 }
-export default { getOrders, addOrder };
+
+function addOrder(order) {}
+
+export default { getOrders, addOrder, getOrdersForDate };
 
