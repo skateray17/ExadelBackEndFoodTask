@@ -1,7 +1,6 @@
 import express from 'express';
 import ordersController from '../controllers/user-orders-controller';
 
-
 const router = express.Router();
 
 router.route('/getUserOrders')
