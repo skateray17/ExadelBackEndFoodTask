@@ -1,12 +1,11 @@
 import express from 'express';
 import ordersController from '../controllers/user-orders-controller';
 
-
 const router = express.Router();
 
 router.route('/')
   .get((req, res) => {
-    ordersController.getOrders(req.query.username)
+    ordersController.getOrders(req.query.username, req.query.startDate, req.query.endDate)
       .then((response) => {
         res.status(200).send(response);
       })
