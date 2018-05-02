@@ -1,0 +1,247 @@
+swagger: "2.0"
+info:
+  description: "Food deliveri api documentation"
+  version: "1.0.0"
+  title: "FoodDeliveri API"
+  contact:
+    email: "skateray17@gmail.com"
+host: "localhost:3000"
+tags:
+- name: "authentication"
+  description: "Everything about authentication"
+- name: "order"
+  description: "Access to Petstore orders"
+schemes:
+- "http"
+basePath: "/api"
+paths:
+  /account/login:
+    post:
+      tags:
+      - "authentication"
+      summary: "login an user"
+      description: "service for login"
+      consumes:
+      - "application/json"
+      - "application/x-www-form-urlencoded"
+
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Needs email and password"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            email:
+              type: "string"
+            password:
+              type: "string"
+      responses:
+        401:
+          description: "Invalid input"
+        200:
+          description: "Successful login"
+          schema:
+            type: "object"
+            properties:
+              token:
+                type: "string"
+  /account/logoff:
+    post:  
+      tags:
+        - "authentication"
+      summary: "logoff an user"
+      description: "It just return success, but tokem should be removed on front side"
+      responses:
+        200:
+          description: "Successfull operation"
+  /order/getUserOrders:
+    get:
+      tags:
+      - "order"
+      description: "return all orders of current user"
+      parameters:
+      - in: "query"
+        name: "username"
+        required: true
+        type: "string"
+      responses:
+        500:
+          description: "No such user or some error happend"
+        200:
+          description: "Successful operation"
+          schema:
+            type: "object"
+            properties:
+              result:
+                type: "array"
+                items:
+                  type: "object"
+                  properties:
+                    date:
+                      type: "string"
+                    order:
+                      type: "object"
+                      properties:
+                        _id:
+                          type: "string"
+                        username:
+                          type: "string"
+                        dishList:
+                          type: "array"
+                          items:
+                            type: "object"
+                            properties:
+                              _id:
+                                type: "string"
+                              dishTitle:
+                                type: "string"
+                              amount:
+                                type: "integer"
+                        totalPrice:
+                          type: "number"
+  /menu:
+    post:
+      consumes:
+        - "multipart/form-data"
+      tags:
+        - "menu"
+      summary: "add new Menu"
+      description: "parse xlsx Menu file, save Menu and return Menu in json"
+      parameters:
+      - in: " formData"
+        name: "body"
+        description: "Needs xlsx Menu file"
+        required: true
+        type: file
+      responses:
+        200:
+          description: "Successfull operation"
+          schema:
+            type: "object"
+            properties:
+              date:
+                type: "string"
+              DAY:
+                type: "object"
+                properties:
+                  day:
+                    type: "string"
+                  menu:
+                    description: "menu on DAY"
+                    type: "array"
+                    items:
+                      type: "object"
+                      properties:
+                        name:
+                          type: "string"
+                        weight:
+                          type: "number"
+                        cost:
+                          type: "number"
+                    common:
+                      type: "object"
+                      properties:
+                        menu:
+                          description: "common menu"
+                          type: "array"
+                          items:
+                            type: "object"
+                            properties:
+                              name:
+                                type: "string"
+                              cost:
+                                type: "number"
+        500:
+          description: "Menu already exists or file error"
+    get:
+      tags:
+        - "menu"
+      summary: "get 2 Menus"
+      description: "return 2 actual Menus in json"
+      responses:
+        200:
+          description: "Successfull operation"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties:
+                date:
+                  type: "string"
+                DAY:
+                  type: "object"
+                  properties:
+                    day:
+                      type: "string"
+                    menu:
+                      description: "menu on DAY"
+                      type: "array"
+                      items:
+                        type: "object"
+                        properties:
+                          name:
+                            type: "string"
+                          weight:
+                            type: "number"
+                          cost:
+                            type: "number"
+                      common:
+                        type: "object"
+                        properties:
+                          menu:
+                            description: "common menu"
+                            type: "array"
+                            items:
+                              type: "object"
+                              properties:
+                                name:
+                                  type: "string"
+                                cost:
+                                  type: "number"
+  /balance:
+    get:
+      tags:
+        - "balance"
+      summary: "get Users Balance List"
+      description: "return array of balances"
+      responses:
+        200:
+          description: "Successfull operation"
+          schema:
+            type: "array"
+            items:
+              type: "object"
+              properties:
+                username:
+                  type: "string"
+                firstName:
+                  type: "string"
+                lastName:
+                  type: "string"
+                balance:
+                  type: "number"
+    put:
+      tags:
+        - "balance"
+      summary: "update User Balance"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Needs username and new Balance"
+        required: true
+        schema:
+          type: "object"
+          properties:
+            username:
+              type: "string"
+            balance:
+              type: "number"
+      responses:
+        200:
+          description: "Successfull operation"
+        500:
+          description: "User not found"
+                
+                

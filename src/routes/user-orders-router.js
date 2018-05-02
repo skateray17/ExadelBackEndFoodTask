@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.route('/')
   .get((req, res) => {
-    User.findById({ _id: req.parsedToken.id })
+    User.findById({ _id: req.parsedToken.id })  
       .then(user => ordersController.getOrders(user.email, req.body.startDate, req.body.endDate))
       .then((response) => {
         res.status(200).send(response);
