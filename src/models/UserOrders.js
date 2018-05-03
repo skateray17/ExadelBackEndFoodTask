@@ -1,11 +1,9 @@
 import mongoose from 'mongoose';
 
 const UserOrdersSchema = new mongoose.Schema({
-  orders: [{
-    username: String,
-    dishList: [{ dishTitle: String, amount: Number }],
-    totalPrice: Number,
-  }],
+  username: String,
+  dishList: [{ dishTitle: String, amount: Number }],
+  totalPrice: Number,
   date: { type: Date, default: Date.now },
 });
 
