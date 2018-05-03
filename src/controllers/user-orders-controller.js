@@ -1,29 +1,60 @@
 import UserOrders from '../models/UserOrders';
+import MenuController from '../controllers/menu-controller';
 
 
-function searchSuitableDays(username, days) {
-  const buffer = [];
-  days.forEach((day) => {
-    const dayOrder = day.orders.find((order) => {
-      if (order.username === username) {
-        return true;
-      }
-      return false;
-    });
-    if (dayOrder !== undefined) {
-      buffer.push({ order: dayOrder, date: day.date });
-    }
-  });
-  return buffer;
+function getRefactoredDate(date, daysToAdd) {
+  return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getUTCDate() + daysToAdd));
 }
 
-function getOrders(username) {
-  return UserOrders.find({}).then(days => ({
-    result: searchSuitableDays(username, days),
-  }));
+function getOrders(
+  username, startDate = getRefactoredDate(new Date(), 0),
+  endDate = getRefactoredDate(new Date(), 7),
+) {
+  return UserOrders.find({ username, date: { $gte: startDate, $lte: endDate } })
+    .then(obj => ({ result: obj }));
+}
+
+
+function isOrderValid(order, currentDate) {
+  const maxTime = getRefactoredDate(new Date(), 7);
+  const minTime = getRefactoredDate(new Date(), 0);
+  let sum = 0;
+  const MENU = MenuController.getCommonByDate(currentDate)
+    .concat(MenuController.getMenuByDate(currentDate));
+  if (currentDate.getTime() <= maxTime.getTime() && currentDate.getTime() > minTime.getTime() &&
+        order.dishList.every(dish => MENU.some((menuPoint) => {
+          if (dish.dishTitle === menuPoint.name) {
+            sum += dish.amount * menuPoint.cost;
+            return true;
+          }
+          return false;
+        }))) {
+    return sum;
+  }
+  return 0;
+}
+
+function validateOrder(order) {
+  const currentDate = getRefactoredDate(new Date(order.date), 0);
+  const sum = isOrderValid(order, currentDate);
+  if (sum) {
+    return Promise.resolve({
+      username: order.username, dishList: order.dishList, date: currentDate, totalPrice: sum,
+    });
+  }
+  return Promise.reject(new Error());
 }
 
 function addOrder(order) {
+  return validateOrder(order).then(obj => UserOrders.update(
+    { username: order.username, date: obj.date },
+    {
+      $set: {
+        date: obj.date, username: obj.username, totalPrice: obj.totalPrice, dishList: obj.dishList,
+      },
+    },
+    { new: true, upsert: true },
+  )).catch(err => err);
 }
 export default { getOrders, addOrder };
 
