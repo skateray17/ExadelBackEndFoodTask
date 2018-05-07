@@ -32,6 +32,6 @@ app.use('/api/balance', balanceRouter);
 
 app.get('/swagger/:params*', (req, res) => res.sendFile(path.resolve(`${__dirname}/../${req.path}`)));
 
-const server = app.listen(process.env.CONNECTION_PORT, () => {
+const server = app.listen(process.env.PORT, () => {
   console.log(`Server listening on port ${server.address().port}`);
 });
