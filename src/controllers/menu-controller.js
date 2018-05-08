@@ -7,9 +7,11 @@ export default {
   getMenuByDate,// eslint-disable-line
   getCommonByDate,// eslint-disable-line
   markOrder,// eslint-disable-line
+  publishMenu,// eslint-disable-line
 };
 
 let actualMenus = [];
+let nonPublished;
 const XLSXDatePlace = 'B1';
 const XLSXDayWord = 'A1';
 const XLSXDay = 'A';
@@ -32,9 +34,6 @@ const Day = {
   thu: '3',
   fri: '4',
   sat: '5',
-};
-const existError = {
-  message: 'menu is already exists',
 };
 const fileError = {
   message: 'file error',
@@ -182,26 +181,25 @@ function addMenu(body) {
   try {
     let book = XLSX.read(body);
     book = book.Sheets[book.SheetNames[0]];
-    const MENU = makeMenu(book);
-    return Menu.findOne(({ date: MENU.date }))
-      .then((menu) => {
-        if (menu) {
-          return Promise.reject(existError);
-        } else if (validateMenu(MENU)) {
-          const m = new Menu({
-            date: MENU.date,
-            menu: MENU,
-          });
-          m.save(() => {
-            updateCachedMenu();
-          });
-          return MENU;
-        }
-        return Promise.reject(fileError);
-      });
+    nonPublished = makeMenu(book);
+    if (validateMenu(nonPublished)) {
+      return Promise.resolve(nonPublished);
+    }
+    return Promise.reject(fileError);
   } catch (e) {
     return Promise.reject(fileError);
   }
+}
+
+function publishMenu() {
+  if (nonPublished) {
+    return Menu.findOneAndUpdate(
+      { date: nonPublished.date },
+      { date: nonPublished.date, menu: nonPublished },
+      { upsert: true },
+    );
+  }
+  return Promise.reject(fileError);
 }
 
 /**
