@@ -4,6 +4,7 @@ export default {
   checkUserBalance, // eslint-disable-line
   getBalanceList, // eslint-disable-line
   updateUserBalance, // eslint-disable-line
+  getUserBalance, // eslint-disable-line
 };
 const findError = {
   message: 'user not found',
@@ -24,6 +25,17 @@ function checkUserBalance(username) {
       return 0;
     });
 }
+
+function getUserBalance(username) {
+  return UserBalance.findOne({ username })
+    .then((user) => {
+      if (user) {
+        return { balance: user.balance };
+      }
+      return Promise.reject(findError);
+    });
+}
+
 function getBalanceList() {
   return UserBalance.find();
 }
