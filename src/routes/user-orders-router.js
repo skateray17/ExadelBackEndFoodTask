@@ -1,7 +1,7 @@
 import express from 'express';
 import ordersController from '../controllers/user-orders-controller';
 import User from '../models/User';
-import authorizationController from '../controllers/authorization';
+import userTypes from '../models/user-types'
 
 const router = express.Router();
 
@@ -18,18 +18,17 @@ router.route('/')
           if (typeof req.query.endDate === 'string') {
             endDate = new Date(req.query.endDate);
           }
-
           ordersController.getOrders(user.email, startDate, endDate);
         })
         .then((response) => {
           res.status(200).send(response);
         })
         .catch((err) => { res.status(500).send(err); });
-    } else {
+    } else if (req.parsedToken.type >= userTypes.ADMIN) {
       ordersController.getOrdersByDate(new Date(req.query.currentDate)).then((response) => {
         res.status(200).send(response);
       }).catch((err) => { res.status(500).send(err); });
-    }
+    } else { res.status(500).send(new Error()); }
   });
 
 router.route('/')
