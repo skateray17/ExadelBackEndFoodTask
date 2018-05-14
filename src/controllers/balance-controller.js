@@ -1,4 +1,3 @@
-import JWT from 'jsonwebtoken';
 import UserBalance from '../models/UserBalance';
 
 export default {
@@ -70,7 +69,6 @@ function seachByNameOrNameAndSurname(arr) {
 const USERS_PER_PAGE = 15;
 
 function findUsers(name = '', page = 1) {
-  console.log(page);
   if (!Number.isInteger(page)) page = 1;
   if (page <= 0) return Promise.reject();
   const splited = name.split(' ');
@@ -85,11 +83,3 @@ function findUsers(name = '', page = 1) {
       return response;
     });
 }
-
-// /////////////////////////////////////////////// //
-checkUserBalance('Eee').then((res) => {
-  console.log(res);
-});
-checkUserBalance('Aaaaa').then((res) => {
-  console.log(res);
-});
