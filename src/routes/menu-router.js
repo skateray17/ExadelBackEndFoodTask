@@ -5,7 +5,7 @@ import authorization from '../controllers/authorization';
 const router = express.Router();
 
 router.route('/')
-  
+
   .post((req, res) => {
     const buffer = [];
     req.on('data', (chunk) => {

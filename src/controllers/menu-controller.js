@@ -183,13 +183,14 @@ function addMenu(body) {
     const MENU = makeMenu(book);
     if (validateMenu(MENU)) {
       MENU.published = false;
-      const m = new Menu({
-        date: MENU.date,
-        menu: MENU,
-      });
-      m.save(() => {
-        updateCachedMenu();
-      });
+      Menu.findOneAndUpdate(
+        { date: MENU.date },
+        { menu: MENU },
+        { upsert: true },
+      )
+        .then(() => {
+          updateCachedMenu();
+        });
       return Promise.resolve(MENU);
     }
     return Promise.reject(fileError);
@@ -199,11 +200,17 @@ function addMenu(body) {
 }
 
 function publishMenu(date) {
-  return Menu.findOneAndUpdate(
+  return Menu.update(
     { date },
-    { $set: { menu: { published: true } } },
-    { upsert: true },
-  );
+    { $set: { 'menu.published': true } },
+  )
+    .then((el) => {
+      if (!el) {
+        return Promise.reject();
+      }
+      updateCachedMenu();
+      return Promise.resolve();
+    });
 }
 
 /**
