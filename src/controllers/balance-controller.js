@@ -40,11 +40,3 @@ function updateUserBalance(username, balance) {
       return Promise.resolve();
     });
 }
-
-///////////////////////////////////////////////////
-checkUserBalance('Eee').then((res) => {
-  console.log(res);
-});
-checkUserBalance('Aaaaa').then((res) => {
-  console.log(res);
-});

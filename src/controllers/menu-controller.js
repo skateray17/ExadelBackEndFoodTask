@@ -11,7 +11,6 @@ export default {
 };
 
 let actualMenus = [];
-let nonPublished;
 const XLSXDatePlace = 'B1';
 const XLSXDayWord = 'A1';
 const XLSXDay = 'A';
@@ -127,10 +126,10 @@ function updateCachedMenu() {
   return Promise.all([Menu.findOne(({ date: date1 })), Menu.findOne(({ date: date2 }))])
     .then((results) => {
       if (results[0]) {
-        MENUS.push(results[0].menu);
+        MENUS[0] = results[0].menu;
       }
       if (results[1]) {
-        MENUS.push(results[1].menu);
+        MENUS[1] = results[1].menu;
       }
       actualMenus = MENUS;
       return MENUS;
@@ -181,9 +180,17 @@ function addMenu(body) {
   try {
     let book = XLSX.read(body);
     book = book.Sheets[book.SheetNames[0]];
-    nonPublished = makeMenu(book);
-    if (validateMenu(nonPublished)) {
-      return Promise.resolve(nonPublished);
+    const MENU = makeMenu(book);
+    if (validateMenu(MENU)) {
+      MENU.published = false;
+      const m = new Menu({
+        date: MENU.date,
+        menu: MENU,
+      });
+      m.save(() => {
+        updateCachedMenu();
+      });
+      return Promise.resolve(MENU);
     }
     return Promise.reject(fileError);
   } catch (e) {
@@ -191,15 +198,12 @@ function addMenu(body) {
   }
 }
 
-function publishMenu() {
-  if (nonPublished) {
-    return Menu.findOneAndUpdate(
-      { date: nonPublished.date },
-      { date: nonPublished.date, menu: nonPublished },
-      { upsert: true },
-    );
-  }
-  return Promise.reject(fileError);
+function publishMenu(date) {
+  return Menu.findOneAndUpdate(
+    { date },
+    { $set: { menu: { published: true } } },
+    { upsert: true },
+  );
 }
 
 /**
