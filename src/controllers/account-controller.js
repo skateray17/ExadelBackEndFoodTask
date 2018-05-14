@@ -2,11 +2,11 @@ import JWT from 'jsonwebtoken';
 import crypto from 'crypto';
 import User from '../models/User';
 import userTypes from '../models/user-types';
+import balanceController from './balance-controller';
 
 export default {
   login, // eslint-disable-line
   untokenize, // eslint-disable-line
-  findUsers, //eslint-disable-line
 };
 
 function crypt(message, salt) {
@@ -38,6 +38,7 @@ function login(req) {
       const token = JWT.sign({ id: user._id, type: user.type }, process.env.JWT_SECRET, {
         expiresIn: 60 * 60 * 24 * 7, // expires in 7 days
       });
+      balanceController.checkUserBalance(user.email, user.firstName, user.lastName);
       return { status: 200, response: { token, username: user.name, type: user.type } };
     })
     .catch(() => Promise.reject(new Error(JSON.stringify({
@@ -70,31 +71,4 @@ function addUser(email, password, firstName, lastName, role = userTypes.BASIC_US
         .catch(err => console.log(err));
     });
   return true;
-}
-
-function findUsers(name) {
-  const splited = name.split(' ');
-  if (splited.length >= 3) {
-    return Promise.resolve([]);
-  }
-  let regex;
-  if (splited.length === 2) {
-    regex = new RegExp(`^${splited[1]}.*`, 'i');
-    return Promise.all([User.find({
-      firstName: splited[0],
-      lastName: { $regex: regex },
-    }), User.find({
-      firstName: { $regex: regex },
-      lastName: splited[0],
-    })])
-      .then(res => res[0].concat(res[1]).filter((el, ind, self) =>
-        self.findIndex(elem => el._id.toString() === elem._id.toString()) === ind));
-  }
-  regex = new RegExp(`^${splited[0]}.*`, 'i');
-  return Promise.all([
-    User.find({ firstName: { $regex: regex } }),
-    User.find({ lastName: { $regex: regex } }),
-  ])
-    .then(res => res[0].concat(res[1]).filter((el, ind, self) =>
-      self.findIndex(elem => el._id.toString() === elem._id.toString()) === ind));
 }

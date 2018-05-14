@@ -2,7 +2,7 @@
   "name": "exadelbackendfoodtask",
   "version": "1.0.0",
   "description": "Ребята в милой ламповой обстановке пилят серверок",
-  "main": "app.js",
+  "main": "./build/app.js",
   "dependencies": {
     "ajv": "^6.4.0",
     "body-parser": "^1.18.2",
