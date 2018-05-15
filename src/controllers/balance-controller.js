@@ -40,9 +40,8 @@ function updateUserBalance(username, balance) {
 }
 
 function seachByNameAndSurname(name) {
-  const regex = new RegExp(`^${name}.*`, 'i');
   return UserBalance.find({
-    $where: `((this.firstName + ' ' + this.lastName).match(${regex}) || (this.lastName + ' ' + this.firstName).match(${regex})) !== null`,
+    $where: `(this.firstName + ' ' + this.lastName).startsWith('${name}') || (this.lastName + ' ' + this.firstName).startsWith('${name}')`,
   });
 }
 
