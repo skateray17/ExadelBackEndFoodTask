@@ -5,7 +5,7 @@ import authorization from '../controllers/authorization';
 const router = express.Router();
 
 router.route('/')
-
+  .post(authorization.authorizeAdmin)
   .post((req, res) => {
     const buffer = [];
     req.on('data', (chunk) => {
@@ -21,14 +21,19 @@ router.route('/')
         });
     });
   })
+  .put(authorization.authorizeAdmin)
   .put((req, res) => {
-    menuController.publishMenu(req.body.date)
-      .then(() => {
-        res.status(200).send();
-      })
-      .catch((error) => {
-        res.status(500).send(error);
-      });
+    if ('published' in req.body) {
+      menuController.publishMenu(req.body)
+        .then(() => {
+          res.status(200).send();
+        })
+        .catch((error) => {
+          res.status(500).send(error);
+        });
+    } else {
+      res.status(500).send();
+    }
   })
   .get((req, res) => {
     const MENUS = menuController.getActualMenus();

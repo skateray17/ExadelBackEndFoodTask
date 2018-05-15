@@ -199,10 +199,10 @@ function addMenu(body) {
   }
 }
 
-function publishMenu(date) {
+function publishMenu(body) {
   return Menu.update(
-    { date },
-    { $set: { 'menu.published': true } },
+    { date: body.date },
+    { $set: { 'menu.published': body.published } },
   )
     .then((el) => {
       if (!el) {

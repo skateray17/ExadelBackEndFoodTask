@@ -24,7 +24,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/api/account', accountRouter);
-//app.use('/api/', authorization.authorizeUser);
+app.use('/api/', authorization.authorizeUser);
 app.use('/api/menu', menuRouter);
 app.use('/api/order', orderRouter);
 app.use('/api/adminOrder', adminOrderRouter);
