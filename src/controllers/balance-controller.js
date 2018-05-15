@@ -39,30 +39,10 @@ function updateUserBalance(username, balance) {
     });
 }
 
-function seachByNameOrNameAndSurname(arr) {
-  if (arr.length >= 3) {
-    return Promise.reject(new Error([]));
-  }
-  let regex;
-  if (arr.length === 2) {
-    regex = new RegExp(`^${arr[1]}.*`, 'i');
-    return UserBalance.find({
-      $or: [{
-        firstName: arr[0],
-        lastName: { $regex: regex },
-      }, {
-        firstName: { $regex: regex },
-        lastName: arr[0],
-      }],
-    });
-  }
-  regex = new RegExp(`^${arr[0]}.*`, 'i');
+function seachByNameAndSurname(name) {
+  const regex = new RegExp(`^${name}.*`, 'i');
   return UserBalance.find({
-    $or: [{
-      firstName: { $regex: regex },
-    }, {
-      lastName: { $regex: regex },
-    }],
+    $where: `((this.firstName + ' ' + this.lastName).match(${regex}) || (this.lastName + ' ' + this.firstName).match(${regex})) !== null`,
   });
 }
 
@@ -71,8 +51,7 @@ const USERS_PER_PAGE = 15;
 function findUsers(name = '', page = 1) {
   if (!Number.isInteger(page)) page = 1;
   if (page <= 0) return Promise.reject();
-  const splited = name.split(' ');
-  return seachByNameOrNameAndSurname(splited)
+  return seachByNameAndSurname(name)
     .sort({ lastName: 1, firstName: 1, username: 1 })
     .then((arr) => {
       const response = {
