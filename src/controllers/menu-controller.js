@@ -254,7 +254,7 @@ function getCommonByDate(date) {
  * functions for deactivating today's Menu
  */
 
-function markOrder() {
+function markOrder(bool) {
   const date = new Date();
   const stringDate = getStringDate(date);
   return Menu.findOne({
@@ -265,7 +265,7 @@ function markOrder() {
         const { menu } = MENU;
         const { _id } = MENU;
         const day = unDay[date.getDay() - 1];
-        menu[day].available = false;
+        menu[day].available = !bool;
         return Menu.findByIdAndUpdate(_id, { $set: { menu } });
       }
       return Promise.reject();
