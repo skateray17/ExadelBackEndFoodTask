@@ -2,13 +2,13 @@ import UserBalance from '../models/UserBalance';
 
 export default {
   checkUserBalance, // eslint-disable-line
-  getBalanceList, // eslint-disable-line
   updateUserBalance, // eslint-disable-line
+  findUsers, // eslint-disable-line
 };
 const findError = {
   message: 'user not found',
 };
-function checkUserBalance(username) {
+function checkUserBalance(username, firstName, lastName) {
   return UserBalance.findOne({ username })
     .then((user) => {
       if (user) {
@@ -16,17 +16,15 @@ function checkUserBalance(username) {
       }
       const userBalance = new UserBalance({
         username,
-        firstName: 'firstName', // Name and Surname using LDAP
-        lastName: 'lastName',
+        firstName, // Name and Surname using LDAP
+        lastName,
         balance: 0,
       });
       userBalance.save();
       return 0;
     });
 }
-function getBalanceList() {
-  return UserBalance.find();
-}
+
 function updateUserBalance(username, balance) {
   const newData = {
     username,
@@ -41,10 +39,25 @@ function updateUserBalance(username, balance) {
     });
 }
 
-///////////////////////////////////////////////////
-checkUserBalance('Eee').then((res) => {
-  console.log(res);
-});
-checkUserBalance('Aaaaa').then((res) => {
-  console.log(res);
-});
+function seachByNameAndSurname(name) {
+  return UserBalance.find({
+    $where: `(this.firstName + ' ' + this.lastName).startsWith('${name}') || (this.lastName + ' ' + this.firstName).startsWith('${name}')`,
+  });
+}
+
+const USERS_PER_PAGE = 15;
+
+function findUsers(name = '', page = 1) {
+  if (!Number.isInteger(page)) page = 1;
+  if (page <= 0) return Promise.reject();
+  return seachByNameAndSurname(name)
+    .sort({ lastName: 1, firstName: 1, username: 1 })
+    .then((arr) => {
+      const response = {
+        totalAmount: arr.length,
+        result: arr.slice((page - 1) * USERS_PER_PAGE, page * USERS_PER_PAGE),
+        currentPage: page,
+      };
+      return response;
+    });
+}

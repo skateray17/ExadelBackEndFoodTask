@@ -7,6 +7,7 @@ export default {
   getMenuByDate,// eslint-disable-line
   getCommonByDate,// eslint-disable-line
   markOrder,// eslint-disable-line
+  publishMenu,// eslint-disable-line
 };
 
 let actualMenus = [];
@@ -34,9 +35,6 @@ const Day = {
   sat: '5',
 };
 const unDay = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-const existError = {
-  message: 'menu is already exists',
-};
 const fileError = {
   message: 'file error',
 };
@@ -129,10 +127,10 @@ function updateCachedMenu() {
   return Promise.all([Menu.findOne(({ date: date1 })), Menu.findOne(({ date: date2 }))])
     .then((results) => {
       if (results[0]) {
-        MENUS.push(results[0].menu);
+        MENUS[0] = results[0].menu;
       }
       if (results[1]) {
-        MENUS.push(results[1].menu);
+        MENUS[1] = results[1].menu;
       }
       actualMenus = MENUS;
       return MENUS;
@@ -184,25 +182,36 @@ function addMenu(body) {
     let book = XLSX.read(body);
     book = book.Sheets[book.SheetNames[0]];
     const MENU = makeMenu(book);
-    return Menu.findOne(({ date: MENU.date }))
-      .then((menu) => {
-        if (menu) {
-          return Promise.reject(existError);
-        } else if (validateMenu(MENU)) {
-          const m = new Menu({
-            date: MENU.date,
-            menu: MENU,
-          });
-          m.save(() => {
-            updateCachedMenu();
-          });
-          return MENU;
-        }
-        return Promise.reject(fileError);
-      });
+    if (validateMenu(MENU)) {
+      MENU.published = false;
+      Menu.findOneAndUpdate(
+        { date: MENU.date },
+        { menu: MENU },
+        { upsert: true },
+      )
+        .then(() => {
+          updateCachedMenu();
+        });
+      return Promise.resolve(MENU);
+    }
+    return Promise.reject(fileError);
   } catch (e) {
     return Promise.reject(fileError);
   }
+}
+
+function publishMenu(body) {
+  return Menu.update(
+    { date: body.date },
+    { $set: { 'menu.published': body.published } },
+  )
+    .then((el) => {
+      if (!el) {
+        return Promise.reject();
+      }
+      updateCachedMenu();
+      return Promise.resolve();
+    });
 }
 
 /**

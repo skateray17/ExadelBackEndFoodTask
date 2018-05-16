@@ -21,6 +21,20 @@ router.route('/')
         });
     });
   })
+  .put(authorization.authorizeAdmin)
+  .put((req, res) => {
+    if ('published' in req.body) {
+      menuController.publishMenu(req.body)
+        .then(() => {
+          res.status(200).send();
+        })
+        .catch((error) => {
+          res.status(500).send(error);
+        });
+    } else {
+      res.status(500).send();
+    }
+  })
   .get((req, res) => {
     const MENUS = menuController.getActualMenus();
     res.status(200).send(MENUS);
