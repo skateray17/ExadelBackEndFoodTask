@@ -2,6 +2,7 @@ import JWT from 'jsonwebtoken';
 import crypto from 'crypto';
 import User from '../models/User';
 import userTypes from '../models/user-types';
+import balanceController from './balance-controller';
 
 export default {
   login, // eslint-disable-line
@@ -37,6 +38,7 @@ function login(req) {
       const token = JWT.sign({ id: user._id, type: user.type }, process.env.JWT_SECRET, {
         expiresIn: 60 * 60 * 24 * 7, // expires in 7 days
       });
+      balanceController.checkUserBalance(user.email, user.firstName, user.lastName);
       return { status: 200, response: { token, username: user.name, type: user.type } };
     })
     .catch(() => Promise.reject(new Error(JSON.stringify({
@@ -51,7 +53,7 @@ function login(req) {
  * @description т.к. у нас не будет реистрации, то она сделана просто для добавления пользователей
  * в DB, а также тестирования авторизациии
  */
-function addUser(email, password, name, role = userTypes.BASIC_USER) {
+function addUser(email, password, firstName, lastName, role = userTypes.BASIC_USER) {
   if (!email || !password) return false;
   User.findOne({ email })
     .then((res) => { if (!res) throw res; })
@@ -61,7 +63,8 @@ function addUser(email, password, name, role = userTypes.BASIC_USER) {
         email,
         type: role,
         passwordHash: crypt(password, salt),
-        name,
+        firstName,
+        lastName,
         passwordSalt: salt,
       });
       user.save()

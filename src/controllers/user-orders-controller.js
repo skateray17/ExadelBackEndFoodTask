@@ -56,5 +56,10 @@ function addOrder(order) {
     { new: true, upsert: true },
   )).catch(err => err);
 }
-export default { getOrders, addOrder };
+function getOrdersByDate(date) {
+  const currentDate = getRefactoredDate(date, 0);
+  return UserOrders.find({ date: { $eq: currentDate } })
+    .then(obj => ({ result: obj }));
+}
+export default { getOrders, addOrder, getOrdersByDate };
 
