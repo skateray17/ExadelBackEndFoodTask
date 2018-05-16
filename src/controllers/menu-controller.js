@@ -33,6 +33,7 @@ const Day = {
   fri: '4',
   sat: '5',
 };
+const unDay = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const existError = {
   message: 'menu is already exists',
 };
@@ -243,31 +244,25 @@ function getCommonByDate(date) {
 /**
  * functions for deactivating today's Menu
  */
-function markDayInMenu(MENU, date) {
-  Object.keys(MENU.menu).forEach((e) => {
-    const menuOnDate = MENU.menu[e];
-    if (menuOnDate.day && compareDates(new Date(menuOnDate.day), new Date(date))) {
-      menuOnDate.available = false;
-      const m = MENU.menu;
-      m[e] = menuOnDate;
-      Menu.findOneAndUpdate(
-        { date: MENU.date },
-        { $set: { menu: m } },
-      ).then(() => {
-        updateCachedMenu();
-      });
-    }
-  });
-}
 
 function markOrder() {
   const date = new Date();
-  return Menu.find()
-    .then((MENUS) => {
-      MENUS.forEach((el) => {
-        markDayInMenu(el, date);
-      });
-    });
+  const stringDate = getStringDate(date);
+  return Menu.findOne({
+    date: stringDate,
+  })
+    .then((MENU) => {
+      if (MENU) {
+        const { menu } = MENU;
+        const { _id } = MENU;
+        const day = unDay[date.getDay() - 1];
+        menu[day].available = false;
+        return Menu.findByIdAndUpdate(_id, { $set: { menu } });
+      }
+      return Promise.reject();
+    })
+    .then(updateCachedMenu)
+    .then(() => actualMenus);
 }
 
 updateCachedMenu();

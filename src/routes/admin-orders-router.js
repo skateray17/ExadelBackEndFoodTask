@@ -6,8 +6,11 @@ const router = express.Router();
 router.route('/')
   .put((req, res) => {
     menuController.markOrder()
-      .then(() => {
-        res.status(200).send();
+      .then((menus) => {
+        res.status(200).send(menus);
+      })
+      .catch((err) => {
+        res.status(500).send(err);
       });
   });
 
