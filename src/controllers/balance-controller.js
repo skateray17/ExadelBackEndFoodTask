@@ -40,9 +40,9 @@ function updateUserBalance(username, balance) {
 }
 
 function seachByNameAndSurname(name) {
-  return UserBalance.find({
-    $where: `(this.firstName + ' ' + this.lastName).startsWith('${name}') || (this.lastName + ' ' + this.firstName).startsWith('${name}')`,
-  });
+  return UserBalance.find({}).sort({ lastName: 1, firstName: 1, username: 1 }).then(res => res
+    .filter(user => `${user.firstName} ${user.lastName}`.startsWith(name) ||
+      `${user.lastName} ${user.firstName}`.startsWith(name)));
 }
 
 const USERS_PER_PAGE = 15;
@@ -51,7 +51,6 @@ function findUsers(name = '', page = 1) {
   if (!Number.isInteger(page)) page = 1;
   if (page <= 0) return Promise.reject();
   return seachByNameAndSurname(name)
-    .sort({ lastName: 1, firstName: 1, username: 1 })
     .then((arr) => {
       const response = {
         totalAmount: arr.length,
