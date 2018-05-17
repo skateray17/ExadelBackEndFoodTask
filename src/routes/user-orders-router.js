@@ -34,7 +34,10 @@ router.route('/')
 router.route('/')
   .put((req, res) => {
     User.findById({ _id: req.parsedToken.id })
-      .then((user) => { req.body.username = user.email; ordersController.addOrder(req.body); })
+      .then((user) => {
+        req.body.username = user.email;
+        return ordersController.addOrder(req.body);
+      })
       .then((response) => {
         res.status(200).send(response);
       })
