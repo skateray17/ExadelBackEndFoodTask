@@ -45,16 +45,14 @@ function seachByNameAndSurname(name) {
       `${user.lastName} ${user.firstName}`.startsWith(name)));
 }
 
-const USERS_PER_PAGE = 15;
-
-function findUsers(name = '', page = 1) {
-  if (!Number.isInteger(page)) page = 1;
-  if (page <= 0) return Promise.reject();
+function findUsers(name = '', page = 1, perPage = 15) {
+  if (!Number.isInteger(page) || page < 1) page = 1;
+  if (!Number.isInteger(perPage) || perPage < 1) perPage = 15;
   return seachByNameAndSurname(name)
     .then((arr) => {
       const response = {
         totalAmount: arr.length,
-        result: arr.slice((page - 1) * USERS_PER_PAGE, page * USERS_PER_PAGE),
+        result: arr.slice((page - 1) * perPage, page * perPage),
         currentPage: page,
       };
       return response;
