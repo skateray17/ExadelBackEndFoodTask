@@ -3,7 +3,7 @@ import MenuController from '../controllers/menu-controller';
 
 
 function addDaysToMidnight(date, daysToAdd) {
-  return new Date(date.getFullYear(), date.getMonth(), date.getUTCDate() + daysToAdd);
+  return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getUTCDate() + daysToAdd));
 }
 
 function getMidnight(date) {
@@ -57,27 +57,25 @@ function validateOrder(order) {
 }
 
 function addOrder(order) {
-  return validateOrder(order).then((obj) => {
-    UserOrders.update(
-      { username: order.username, date: obj.date },
-      {
-        $set: {
-          date: obj.date,
-          username: obj.username,
-          totalPrice: obj.totalPrice,
-          dishList: obj.dishList,
-        },
+  return validateOrder(order).then(obj => UserOrders.update(
+    { username: order.username, date: obj.date },
+    {
+      $set: {
+        date: obj.date,
+        username: obj.username,
+        totalPrice: obj.totalPrice,
+        dishList: obj.dishList,
       },
-      { new: true, upsert: true },
-    );
-    return { totalPrice: obj.totalPrice };
-  });
+    },
+    { new: true, upsert: true },
+  ).then(() => (Promise.resolve({ totalPrice: obj.totalPrice })))
+    .catch(() => Promise.reject(new Error())));
 }
 
 function getOrdersByDate(date) {
   const currentDate = addDaysToMidnight(date, 0);
   return UserOrders.find({ date: { $eq: currentDate } })
-    .then(obj => ({ result: obj })).catch(err => err);
+    .then(obj => ({ result: obj }));
 }
 
 export default { getOrders, addOrder, getOrdersByDate };
