@@ -54,6 +54,7 @@ function findUsers(name = '', page = 1, perPage = 15) {
         totalAmount: arr.length,
         result: arr.slice((page - 1) * perPage, page * perPage),
         currentPage: page,
+        perPage,
       };
       return response;
     });
