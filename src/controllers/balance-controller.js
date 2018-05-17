@@ -40,9 +40,10 @@ function updateUserBalance(username, balance) {
 }
 
 function seachByNameAndSurname(name) {
+  name = name.toLowerCase();
   return UserBalance.find({}).sort({ lastName: 1, firstName: 1, username: 1 }).then(res => res
-    .filter(user => `${user.firstName} ${user.lastName}`.startsWith(name) ||
-      `${user.lastName} ${user.firstName}`.startsWith(name)));
+    .filter(user => `${user.firstName} ${user.lastName}`.toLowerCase().startsWith(name) ||
+      `${user.lastName} ${user.firstName}`.toLowerCase().startsWith(name)));
 }
 
 function findUsers(name = '', page = 1, perPage = 15) {
