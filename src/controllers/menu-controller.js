@@ -270,8 +270,7 @@ function markOrder(bool) {
       }
       return Promise.reject();
     })
-    .then(updateCachedMenu)
-    .then(() => actualMenus);
+    .then(updateCachedMenu);
 }
 
 updateCachedMenu();
