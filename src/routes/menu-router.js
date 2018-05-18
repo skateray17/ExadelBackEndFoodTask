@@ -31,6 +31,14 @@ router.route('/')
         .catch((error) => {
           res.status(500).send(error);
         });
+    } else if ('mark' in req.body) {
+      menuController.markOrder(req.body.mark)
+        .then((menus) => {
+          res.status(200).send(menus);
+        })
+        .catch((err) => {
+          res.status(500).send(err);
+        });
     } else {
       res.status(500).send();
     }
