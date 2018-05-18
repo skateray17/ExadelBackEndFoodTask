@@ -183,15 +183,15 @@ function addMenu(body) {
     const MENU = makeMenu(book);
     if (validateMenu(MENU)) {
       MENU.published = false;
-      Menu.findOneAndUpdate(
+      return Menu.findOneAndUpdate(
         { date: MENU.date },
         { menu: MENU },
         { upsert: true },
       )
         .then(() => {
           updateCachedMenu();
+          return MENU;
         });
-      return Promise.resolve(MENU);
     }
     return Promise.reject(fileError);
   } catch (e) {
