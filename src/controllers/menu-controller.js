@@ -38,6 +38,9 @@ const unDay = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const fileError = {
   message: 'file error',
 };
+const dateError = {
+  message: 'date error',
+};
 
 /**
  * functions for working with Dates
@@ -98,8 +101,8 @@ function validateMenuItem(menuItem) {
   return false;
 }
 
-function validateMenu(menu, date) {
-  return date === menu.date && typeof menu.date === 'string' && !Object.keys(menu).some((el) => {
+function validateMenu(menu) {
+  return typeof menu.date === 'string' && !Object.keys(menu).some((el) => {
     const menuItem = menu[el];
     if (el === 'date') {
       return false;
@@ -184,16 +187,19 @@ function addMenu(file, date) {
     const MENU = makeMenu(book);
     let dateString;
     const today = new Date();
-    if (date === 'actual') {
+    if (date === 'current') {
       dateString = getStringDate(today);
-    } else {
+    } else if (date === 'next') {
       dateString = getStringDate(new Date(
         today.getFullYear(),
         today.getMonth(),
         today.getDate() + 7,
       ));
     }
-    if (validateMenu(MENU, dateString)) {
+    if (dateString !== MENU.date) {
+      return Promise.reject(dateError);
+    }
+    if (validateMenu(MENU)) {
       MENU.published = false;
       return Menu.findOneAndUpdate(
         { date: MENU.date },
