@@ -98,8 +98,8 @@ function validateMenuItem(menuItem) {
   return false;
 }
 
-function validateMenu(menu) {
-  return typeof menu.date === 'string' && !Object.keys(menu).some((el) => {
+function validateMenu(menu, date) {
+  return date === menu.date && typeof menu.date === 'string' && !Object.keys(menu).some((el) => {
     const menuItem = menu[el];
     if (el === 'date') {
       return false;
@@ -177,12 +177,23 @@ function makeMenu(book) {
   return MENU;
 }
 
-function addMenu(body) {
+function addMenu(file, date) {
   try {
-    let book = XLSX.read(body);
+    let book = XLSX.read(file);
     book = book.Sheets[book.SheetNames[0]];
     const MENU = makeMenu(book);
-    if (validateMenu(MENU)) {
+    let dateString;
+    const today = new Date();
+    if (date === 'actual') {
+      dateString = getStringDate(today);
+    } else {
+      dateString = getStringDate(new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() + 7,
+      ));
+    }
+    if (validateMenu(MENU, dateString)) {
       MENU.published = false;
       return Menu.findOneAndUpdate(
         { date: MENU.date },
