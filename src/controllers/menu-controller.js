@@ -262,8 +262,7 @@ function setOrderAvailability(isAvailable) {
   })
     .then((MENU) => {
       if (MENU) {
-        const { menu } = MENU;
-        const { _id } = MENU;
+        const { menu, _id } = MENU;
         const day = unDay[date.getDay() - 1];
         menu[day].available = isAvailable;
         return Menu.findByIdAndUpdate(_id, { $set: { menu } });
