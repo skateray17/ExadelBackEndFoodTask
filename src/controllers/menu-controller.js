@@ -6,7 +6,7 @@ export default {
   getActualMenus,// eslint-disable-line
   getMenuByDate,// eslint-disable-line
   getCommonByDate,// eslint-disable-line
-  markOrder,// eslint-disable-line
+  setOrderAvailability,// eslint-disable-line
   publishMenu,// eslint-disable-line
 };
 
@@ -254,7 +254,7 @@ function getCommonByDate(date) {
  * functions for deactivating today's Menu
  */
 
-function markOrder(bool) {
+function setOrderAvailability(isAvailable) {
   const date = new Date();
   const stringDate = getStringDate(date);
   return Menu.findOne({
@@ -265,13 +265,12 @@ function markOrder(bool) {
         const { menu } = MENU;
         const { _id } = MENU;
         const day = unDay[date.getDay() - 1];
-        menu[day].available = !bool;
+        menu[day].available = isAvailable;
         return Menu.findByIdAndUpdate(_id, { $set: { menu } });
       }
       return Promise.reject();
     })
-    .then(updateCachedMenu)
-    .then(() => actualMenus);
+    .then(updateCachedMenu);
 }
 
 updateCachedMenu();
