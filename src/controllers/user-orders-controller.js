@@ -11,33 +11,25 @@ function addDaysToDate(date, daysToAdd) {
   date.setDate(date.getDate() + daysToAdd);
 }
 
-function castToValidTimezone(date) {
-  date.setHours(date.getHours() + 3);
-}
-
 function getOrders(username, dates) {
   let startDate;
   let endDate;
   if (dates.startDate && dates.endDate) {
     startDate = new Date(dates.startDate);
-    castToValidTimezone(startDate);
     setMidnight(startDate);
 
     endDate = new Date(dates.endDate);
-    castToValidTimezone(endDate);
     setMidnight(endDate);
     return UserOrders.find({ username, date: { $gte: startDate, $lte: endDate } })
       .then(obj => ({ result: obj }));
   } else if (dates.startDate) {
     startDate = new Date(dates.startDate);
-    castToValidTimezone(startDate);
     setMidnight(startDate);
 
     return UserOrders.find({ username, date: { $gte: startDate } })
       .then(obj => ({ result: obj }));
   } else if (dates.endDate) {
     endDate = new Date(dates.endDate);
-    castToValidTimezone(endDate);
     setMidnight(endDate);
 
     return UserOrders.find({ username, date: { $lte: endDate } })
@@ -50,11 +42,9 @@ function getOrders(username, dates) {
 
 function isOrderValid(order, currentDate) {
   const maxTime = new Date();
-  castToValidTimezone(maxTime);
   addDaysToDate(maxTime, 14);
   setMidnight(maxTime);
   const minTime = new Date();
-  castToValidTimezone(minTime);
   setMidnight(minTime);
   let sum = 0;
   const MENU = MenuController.getCommonByDate(currentDate)
@@ -80,7 +70,6 @@ function isOrderValid(order, currentDate) {
 
 function validateOrder(order) {
   const currentDate = new Date(order.date);
-  castToValidTimezone(currentDate);
   setMidnight(currentDate);
   const sum = isOrderValid(order, currentDate);
 
@@ -115,7 +104,6 @@ function addOrder(order) {
 
 function getOrdersByDate(date) {
   const currentDate = new Date(date);
-  castToValidTimezone(currentDate);
   setMidnight(currentDate);
 
   return UserOrders.find({ date: { $eq: currentDate } })
