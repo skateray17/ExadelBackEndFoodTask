@@ -64,7 +64,7 @@ function isOrderValid(order, currentDate) {
   if (currentDate.getTime() <= maxTime.getTime() && currentDate.getTime() >= minTime.getTime()) {
     if (order.dishList.every(dish => MENU.some((menuPoint) => {
       if (dish.dishTitle === menuPoint.name && dish.amount >= 0) {
-        sum += dish.amount * menuPoint.cost;
+        sum += parseFloat((dish.amount * menuPoint.cost).toFixed(2));
         return true;
       }
       return false;
