@@ -40,18 +40,18 @@ function getOrders(username, dates) {
 }
 
 
-function isOrderValid(order, currentDate) {
+function isOrderValid(order, orderDate) {
   const maxTime = new Date();
   addDaysToDate(maxTime, 14);
   setMidnight(maxTime);
   const minTime = new Date();
   setMidnight(minTime);
   let sum = 0;
-  const MENU = MenuController.getCommonByDate(currentDate)
-    .concat(MenuController.getMenuByDate(currentDate));
+  const MENU = MenuController.getCommonByDate(orderDate)
+    .concat(MenuController.getMenuByDate(orderDate));
 
 
-  if (currentDate.getTime() <= maxTime.getTime() && currentDate.getTime() >= minTime.getTime()) {
+  if (orderDate.getTime() <= maxTime.getTime() && orderDate.getTime() >= minTime.getTime()) {
     if (order.dishList.length && order.dishList.every(dish => MENU.some((menuPoint) => {
       if (dish.dishTitle === menuPoint.name && dish.amount >= 0) {
         sum += parseFloat((dish.amount * menuPoint.cost).toFixed(2));
@@ -69,13 +69,13 @@ function isOrderValid(order, currentDate) {
 }
 
 function validateOrder(order) {
-  const currentDate = new Date(order.date);
-  setMidnight(currentDate);
-  const sum = isOrderValid(order, currentDate);
+  const orderDate = new Date(order.date);
+  setMidnight(orderDate);
+  const sum = isOrderValid(order, orderDate);
 
   if (sum) {
     return Promise.resolve({
-      username: order.username, dishList: order.dishList, date: currentDate, totalPrice: sum,
+      username: order.username, dishList: order.dishList, date: orderDate, totalPrice: sum,
     });
   }
   return Promise.reject(new Error());
