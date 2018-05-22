@@ -6,7 +6,6 @@ import path from 'path';
 import accountRouter from './routes/account-routes';
 import menuRouter from './routes/menu-router';
 import orderRouter from './routes/user-orders-router';
-import adminOrderRouter from './routes/admin-orders-router';
 import balanceRouter from './routes/balance-router';
 import authorization from './controllers/authorization';
 
@@ -29,11 +28,10 @@ app.use('/api/account', accountRouter);
 app.use('/api/', authorization.authorizeUser);
 app.use('/api/menu', menuRouter);
 app.use('/api/order', orderRouter);
-app.use('/api/adminOrder', adminOrderRouter);
 app.use('/api/balance', balanceRouter);
 
 app.get('/swagger/:params*', (req, res) => res.sendFile(path.resolve(`${__dirname}/../${req.path}`)));
 
-const server = app.listen(process.env.PORT, () => {
+const server = app.listen(process.env.CONNECTION_PORT, () => {
   console.log(`Server listening on port ${server.address().port}`);
 });
