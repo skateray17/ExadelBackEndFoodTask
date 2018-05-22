@@ -9,26 +9,19 @@ router.route('/')
   .get((req, res) => {
     if (req.query.currentDate === undefined) {
       User.findById({ _id: req.parsedToken.id })
-        .then((user) => {
-          let startDate;
-          let endDate;
-          if (typeof req.query.startDate === 'string') {
-            startDate = new Date(req.query.startDate);
-          }
-          if (typeof req.query.endDate === 'string') {
-            endDate = new Date(req.query.endDate);
-          }
-          return ordersController.getOrders(user.email, startDate, endDate);
-        })
+        .then(user => ordersController
+          .getOrders(user.email, { startDate: req.query.startDate, endDate: req.query.endDate }))
         .then((response) => {
           res.status(200).send(response);
         })
         .catch((err) => { res.status(500).send(err); });
     } else if (req.parsedToken.type >= userTypes.ADMIN) {
-      ordersController.getOrdersByDate(new Date(req.query.currentDate)).then((response) => {
+      ordersController.getOrdersByDate(req.query.currentDate).then((response) => {
         res.status(200).send(response);
       }).catch((err) => { res.status(500).send(err); });
-    } else { res.status(500).send(new Error()); }
+    } else {
+      res.status(500).send(new Error());
+    }
   });
 
 router.route('/')
