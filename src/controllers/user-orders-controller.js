@@ -62,7 +62,7 @@ function isOrderValid(order, currentDate) {
 
 
   if (currentDate.getTime() <= maxTime.getTime() && currentDate.getTime() >= minTime.getTime()) {
-    if (order.dishList.every(dish => MENU.some((menuPoint) => {
+    if (order.dishList.length && order.dishList.every(dish => MENU.some((menuPoint) => {
       if (dish.dishTitle === menuPoint.name && dish.amount >= 0) {
         sum += parseFloat((dish.amount * menuPoint.cost).toFixed(2));
         return true;
@@ -72,6 +72,9 @@ function isOrderValid(order, currentDate) {
       return sum;
     }
   }
+  if (!order.dishList.length) {
+    return -1;
+  }
   return 0;
 }
 
@@ -80,6 +83,7 @@ function validateOrder(order) {
   castToValidTimezone(currentDate);
   setMidnight(currentDate);
   const sum = isOrderValid(order, currentDate);
+
   if (sum) {
     return Promise.resolve({
       username: order.username, dishList: order.dishList, date: currentDate, totalPrice: sum,
@@ -89,18 +93,24 @@ function validateOrder(order) {
 }
 
 function addOrder(order) {
-  return validateOrder(order).then(obj => UserOrders.update(
-    { username: order.username, date: obj.date },
-    {
-      $set: {
-        date: obj.date,
-        username: obj.username,
-        totalPrice: obj.totalPrice,
-        dishList: obj.dishList,
-      },
-    },
-    { new: true, upsert: true },
-  ).then(() => (Promise.resolve({ totalPrice: obj.totalPrice }))));
+  return validateOrder(order).then((obj) => {
+    if (obj.totalPrice !== -1) {
+      return UserOrders.update(
+        { username: order.username, date: obj.date },
+        {
+          $set: {
+            date: obj.date,
+            username: obj.username,
+            totalPrice: obj.totalPrice,
+            dishList: obj.dishList,
+          },
+        },
+        { new: true, upsert: true },
+      ).then(() => (Promise.resolve({ totalPrice: obj.totalPrice })));
+    }
+    return UserOrders.findOne({ username: order.username, date: obj.date }).remove().exec()
+      .then(() => (Promise.resolve({ totalPrice: 0 })));
+  });
 }
 
 function getOrdersByDate(date) {
