@@ -1,12 +1,17 @@
 import UserBalance from '../models/UserBalance';
 
+const BALANCE_LIMIT = -20;
 export default {
   checkUserBalance, // eslint-disable-line
   updateUserBalance, // eslint-disable-line
   findUsers, // eslint-disable-line
+  findUserByUsername,// eslint-disable-line
 };
 const findError = {
   message: 'user not found',
+};
+const limitError = {
+  message: 'limit exceeded',
 };
 function checkUserBalance(username, firstName, lastName) {
   return UserBalance.findOne({ username })
@@ -26,16 +31,18 @@ function checkUserBalance(username, firstName, lastName) {
 }
 
 function updateUserBalance(username, balance) {
-  const newData = {
-    username,
-    balance,
-  };
-  return UserBalance.findOneAndUpdate({ username }, { $set: newData })
+  return UserBalance.findOne({ username })
     .then((el) => {
-      if (!el) {
-        return Promise.reject(findError);
+      if (el) {
+        if (el.balance + balance < BALANCE_LIMIT) {
+          return Promise.reject(limitError);
+        }
+        el.balance += balance;
+        el.balance = Number.parseFloat(el.balance.toFixed(2));
+        el.save();
+        return Promise.resolve({ balance: el.balance });
       }
-      return Promise.resolve();
+      return Promise.reject(findError);
     });
 }
 
@@ -60,4 +67,8 @@ function findUsers(name = '', page = 1, perPage = 15) {
       };
       return response;
     });
+}
+
+function findUserByUsername(username) {
+  return UserBalance.findOne({ username });
 }
