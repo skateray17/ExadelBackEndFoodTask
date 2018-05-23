@@ -32,8 +32,8 @@ router.route('/')
         .catch((error) => {
           res.status(500).send(error);
         });
-    } else if ('mark' in req.body) {
-      menuController.markOrder(req.body.mark)
+    } else if ('available' in req.body) {
+      menuController.setOrderAvailability(req.body.available)
         .then(() => {
           res.status(200).send();
         })

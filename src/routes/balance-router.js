@@ -16,7 +16,11 @@ router.route('/')
           res.status(500).send(err);
         });
     } else {
-      balanceController.findUsers(req.query.name, Number.parseInt(req.query.page, 10))
+      balanceController.findUsers(
+        req.query.name,
+        Number.parseInt(req.query.page, 10),
+        Number.parseInt(req.query.perPage, 10),
+      )
         .then((response) => {
           res.status(200).send(response);
         })
