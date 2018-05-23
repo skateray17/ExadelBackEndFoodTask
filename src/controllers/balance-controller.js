@@ -46,7 +46,8 @@ function updateUserBalance(username, balance) {
     });
 }
 
-function seachByNameAndSurname(name) {
+
+function searchByNameAndSurname(name) {
   name = name.toLowerCase();
   return UserBalance.find({}).sort({
     balance: 1, lastName: 1, firstName: 1, username: 1,
@@ -57,7 +58,7 @@ function seachByNameAndSurname(name) {
 function findUsers(name = '', page = 1, perPage = 15) {
   if (!Number.isInteger(page) || page < 1) page = 1;
   if (!Number.isInteger(perPage) || perPage < 1) perPage = 15;
-  return seachByNameAndSurname(name)
+  return searchByNameAndSurname(name)
     .then((arr) => {
       const response = {
         totalAmount: arr.length,
