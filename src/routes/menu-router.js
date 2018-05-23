@@ -7,12 +7,13 @@ const router = express.Router();
 router.route('/')
   .post(authorization.authorizeAdmin)
   .post((req, res) => {
+    const { date } = req.query;
     const buffer = [];
     req.on('data', (chunk) => {
       buffer.push(chunk);
     }).on('end', () => {
       const file = Buffer.concat(buffer);
-      menuController.addMenu(file)
+      menuController.addMenu(file, date)
         .then((response) => {
           res.status(200).send(response);
         })

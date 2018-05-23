@@ -38,6 +38,9 @@ const unDay = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const fileError = {
   message: 'file error',
 };
+const dateError = {
+  message: 'date error',
+};
 
 /**
  * functions for working with Dates
@@ -177,22 +180,36 @@ function makeMenu(book) {
   return MENU;
 }
 
-function addMenu(body) {
+function addMenu(file, date) {
   try {
-    let book = XLSX.read(body);
+    let book = XLSX.read(file);
     book = book.Sheets[book.SheetNames[0]];
     const MENU = makeMenu(book);
+    let dateString;
+    const today = new Date();
+    if (date === 'current') {
+      dateString = getStringDate(today);
+    } else if (date === 'next') {
+      dateString = getStringDate(new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() + 7,
+      ));
+    }
+    if (dateString !== MENU.date) {
+      return Promise.reject(dateError);
+    }
     if (validateMenu(MENU)) {
       MENU.published = false;
-      Menu.findOneAndUpdate(
+      return Menu.findOneAndUpdate(
         { date: MENU.date },
         { menu: MENU },
         { upsert: true },
       )
         .then(() => {
           updateCachedMenu();
+          return MENU;
         });
-      return Promise.resolve(MENU);
     }
     return Promise.reject(fileError);
   } catch (e) {
