@@ -39,7 +39,15 @@ function login(req) {
         expiresIn: 60 * 60 * 24 * 7, // expires in 7 days
       });
       balanceController.checkUserBalance(user.email, user.firstName, user.lastName);
-      return { status: 200, response: { token, username: user.name, type: user.type } };
+      return {
+        status: 200,
+        response: {
+          token,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          type: user.type,
+        },
+      };
     })
     .catch(() => Promise.reject(new Error(JSON.stringify({
       status: 401,

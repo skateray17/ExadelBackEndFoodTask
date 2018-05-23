@@ -40,23 +40,23 @@ function updateUserBalance(username, balance) {
 }
 
 function seachByNameAndSurname(name) {
-  return UserBalance.find({
-    $where: `(this.firstName + ' ' + this.lastName).startsWith('${name}') || (this.lastName + ' ' + this.firstName).startsWith('${name}')`,
-  });
+  name = name.toLowerCase();
+  return UserBalance.find({}).sort({
+    balance: 1, lastName: 1, firstName: 1, username: 1,
+  }).then(res => res.filter(user => `${user.firstName} ${user.lastName}`.toLowerCase().startsWith(name) ||
+    `${user.lastName} ${user.firstName}`.toLowerCase().startsWith(name)));
 }
 
-const USERS_PER_PAGE = 15;
-
-function findUsers(name = '', page = 1) {
-  if (!Number.isInteger(page)) page = 1;
-  if (page <= 0) return Promise.reject();
+function findUsers(name = '', page = 1, perPage = 15) {
+  if (!Number.isInteger(page) || page < 1) page = 1;
+  if (!Number.isInteger(perPage) || perPage < 1) perPage = 15;
   return seachByNameAndSurname(name)
-    .sort({ lastName: 1, firstName: 1, username: 1 })
     .then((arr) => {
       const response = {
         totalAmount: arr.length,
-        result: arr.slice((page - 1) * USERS_PER_PAGE, page * USERS_PER_PAGE),
+        result: arr.slice((page - 1) * perPage, page * perPage),
         currentPage: page,
+        perPage,
       };
       return response;
     });

@@ -7,7 +7,11 @@ const router = express.Router();
 router.route('/')
   .get(authorization.authorizeAdmin)
   .get((req, res) => {
-    balanceController.findUsers(req.query.name, Number.parseInt(req.query.page, 10))
+    balanceController.findUsers(
+      req.query.name,
+      Number.parseInt(req.query.page, 10),
+      Number.parseInt(req.query.perPage, 10),
+    )
       .then((response) => {
         res.status(200).send(response);
       })
