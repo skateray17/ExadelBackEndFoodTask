@@ -5,10 +5,9 @@ import authorization from '../controllers/authorization';
 const router = express.Router();
 
 router.route('/')
-  .get(authorization.authorizeAdmin)
-  .get((req, res) => {
-    if ('username' in req.query) {
-      balanceController.findUserByUsername(req.query.username)
+  .get((req, res, next) => {
+    if (!('name' in req.query)) {
+      balanceController.findUserByUsername(req.parsedToken.username)
         .then((response) => {
           res.status(200).send(response);
         })
@@ -16,18 +15,21 @@ router.route('/')
           res.status(500).send(err);
         });
     } else {
-      balanceController.findUsers(
-        req.query.name,
-        Number.parseInt(req.query.page, 10),
-        Number.parseInt(req.query.perPage, 10),
-      )
-        .then((response) => {
-          res.status(200).send(response);
-        })
-        .catch((err) => {
-          res.status(500).send(err);
-        });
+      authorization.authorizeAdmin(req, res, next);
     }
+  })
+  .get((req, res) => {
+    balanceController.findUsers(
+      req.query.name,
+      Number.parseInt(req.query.page, 10),
+      Number.parseInt(req.query.perPage, 10),
+    )
+      .then((response) => {
+        res.status(200).send(response);
+      })
+      .catch((err) => {
+        res.status(500).send(err);
+      });
   })
   .put(authorization.authorizeAdmin)
   .put((req, res) => {
