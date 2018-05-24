@@ -1,6 +1,6 @@
 import UserOrders from '../models/UserOrders';
 import MenuController from '../controllers/menu-controller';
-import { updateUserBalance } from '../controllers/balance-controller';
+import UserBalanceController from '../controllers/balance-controller';
 
 // ПРИСЫЛАТЬ ВСЕ БЕЗ Z В КОНЦЕ!!!!!
 function setMidnight(date) {
@@ -51,7 +51,6 @@ function isOrderValid(order, orderDate) {
   const MENU = MenuController.getCommonByDate(orderDate)
     .concat(MenuController.getMenuByDate(orderDate));
 
-
   if (orderDate.getTime() <= maxTime.getTime() && orderDate.getTime() >= minTime.getTime()) {
     if (order.dishList.length && order.dishList.every(dish => MENU.some((menuPoint) => {
       if (dish.dishTitle === menuPoint.name && dish.amount >= 0) {
@@ -60,7 +59,7 @@ function isOrderValid(order, orderDate) {
       }
       return false;
     }))) {
-      return sum.toFixed(2);
+      return parseFloat(sum.toFixed(2));
     }
   }
   if (!order.dishList.length) {
@@ -72,6 +71,7 @@ function isOrderValid(order, orderDate) {
 function validateOrder(order) {
   const orderDate = new Date(order.date);
   setMidnight(orderDate);
+
   const sum = isOrderValid(order, orderDate);
 
   if (sum) {
@@ -86,28 +86,30 @@ function addOrder(order) {
   return validateOrder(order).then((obj) => {
     if (obj.totalPrice !== -1) {
       return UserOrders.findOne({ username: order.username, date: obj.date })
-        .then(tmp => updateUserBalance(order.username, tmp.totalPrice)
-          .then(() => {
-            updateUserBalance(order.username, -obj.totalPrice)
-              .then(() => UserOrders.update(
-                { username: order.username, date: obj.date },
-                {
-                  $set: {
-                    date: obj.date,
-                    username: obj.username,
-                    totalPrice: obj.totalPrice,
-                    dishList: obj.dishList,
-                  },
-                },
-                { new: true, upsert: true },
-              ).then(() => (Promise.resolve({ totalPrice: obj.totalPrice }))))
-              .catch(() => updateUserBalance(order.username, -tmp.totalPrice).then(() => Promise.reject(new Error())));
-          }));
+        .then((tmp) => {
+          if (tmp !== null) {
+            return UserBalanceController.updateUserBalance(order.username, tmp.totalPrice - obj.totalPrice);
+          }
+          return UserBalanceController.updateUserBalance(order.username, -obj.totalPrice);
+        })
+        .then(() => UserOrders.update(
+          { username: order.username, date: obj.date },
+          {
+            $set: {
+              date: obj.date,
+              username: obj.username,
+              totalPrice: obj.totalPrice,
+              dishList: obj.dishList,
+            },
+          },
+          { new: true, upsert: true },
+        ).then(() => (Promise.resolve({ totalPrice: obj.totalPrice }))));
     }
+
     return UserOrders.findOne({ username: order.username, date: obj.date })
-      .then(tmp => updateUserBalance(order.username, tmp.totalPrice)
-        .then(() => UserOrders.findOne({ username: order.username, date: obj.date }).remove().exec()
-          .then(() => (Promise.resolve({ totalPrice: 0 })))));
+      .then(tmp => UserBalanceController.updateUserBalance(order.username, tmp.totalPrice))
+      .then(() => UserOrders.findOne({ username: order.username, date: obj.date }).remove().exec()
+        .then(() => (Promise.resolve({ totalPrice: 0 }))));
   });
 }
 

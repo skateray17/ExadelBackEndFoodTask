@@ -10,6 +10,7 @@ export default {
 };
 
 function crypt(message, salt) {
+  console.log(arguments);
   return crypto.pbkdf2Sync(
     message, salt, Number.parseInt(process.env.CRYPTO_ITERATIONS, 10),
     Number.parseInt(process.env.CRYPTO_KEYLEN, 10), 'sha512',
@@ -28,9 +29,11 @@ function untokenize(token) {
 }
 
 function login(req) {
+  console.log(req);
   return User.findOne({ email: req.email })
     .then((user) => {
       const passHash = crypt(req.password, user.passwordSalt);
+      console.log(passHash, user.passwordHash);
       if (passHash !== user.passwordHash) {
         return Promise.reject();
       }
@@ -62,8 +65,8 @@ function login(req) {
  * в DB, а также тестирования авторизациии
  */
 function addUser(email, password, firstName, lastName, role = userTypes.BASIC_USER) {
-  if (!email || !password) return false;
-  User.findOne({ email })
+  if (!email || !password) return Promise.reject();
+  return User.findOne({ email })
     .then((res) => { if (!res) throw res; })
     .catch(() => {
       const salt = crypto.randomBytes(64).toString('hex');
@@ -75,8 +78,15 @@ function addUser(email, password, firstName, lastName, role = userTypes.BASIC_US
         lastName,
         passwordSalt: salt,
       });
-      user.save()
+      return user.save()
         .catch(err => console.log(err));
     });
-  return true;
+  // return true;
 }
+// for local tests
+
+// const emtoAdd = 'ccc';
+// const pass = '123';
+//
+// User.remove({ email: emtoAdd }). then(() => addUser(emtoAdd, pass, 'Pashka', 'Romashka').then(() => login({ email: emtoAdd, password: pass })).then(res => console.log(res)));
+// User.find().then(res => console.log(res));
