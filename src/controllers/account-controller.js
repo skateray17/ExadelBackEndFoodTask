@@ -5,12 +5,12 @@ import userTypes from '../models/user-types';
 import balanceController from './balance-controller';
 
 export default {
-  login, // eslint-disable-line
-  untokenize, // eslint-disable-line
+    login, // eslint-disable-line
+    untokenize, // eslint-disable-line
+    getUsername, // eslint-disable-line
 };
 
 function crypt(message, salt) {
-  console.log(arguments);
   return crypto.pbkdf2Sync(
     message, salt, Number.parseInt(process.env.CRYPTO_ITERATIONS, 10),
     Number.parseInt(process.env.CRYPTO_KEYLEN, 10), 'sha512',
@@ -29,11 +29,9 @@ function untokenize(token) {
 }
 
 function login(req) {
-  console.log(req);
   return User.findOne({ email: req.email })
     .then((user) => {
       const passHash = crypt(req.password, user.passwordSalt);
-      console.log(passHash, user.passwordHash);
       if (passHash !== user.passwordHash) {
         return Promise.reject();
       }
@@ -60,13 +58,23 @@ function login(req) {
     }))));
 }
 
+function getUsername(req) {
+  if (!req.parsedToken) {
+    return Promise.reject();
+  }
+  return User.findById({ _id: req.parsedToken.id }).then((user) => {
+    if (!user) return Promise.reject();
+    return user.email;
+  });
+}
+
 /**
  * @description т.к. у нас не будет реистрации, то она сделана просто для добавления пользователей
  * в DB, а также тестирования авторизациии
  */
 function addUser(email, password, firstName, lastName, role = userTypes.BASIC_USER) {
-  if (!email || !password) return Promise.reject();
-  return User.findOne({ email })
+  if (!email || !password) return false;
+  User.findOne({ email })
     .then((res) => { if (!res) throw res; })
     .catch(() => {
       const salt = crypto.randomBytes(64).toString('hex');
@@ -78,15 +86,8 @@ function addUser(email, password, firstName, lastName, role = userTypes.BASIC_US
         lastName,
         passwordSalt: salt,
       });
-      return user.save()
+      user.save()
         .catch(err => console.log(err));
     });
-  // return true;
+  return true;
 }
-// for local tests
-
-// const emtoAdd = 'ccc';
-// const pass = '123';
-//
-// User.remove({ email: emtoAdd }). then(() => addUser(emtoAdd, pass, 'Pashka', 'Romashka').then(() => login({ email: emtoAdd, password: pass })).then(res => console.log(res)));
-// User.find().then(res => console.log(res));
