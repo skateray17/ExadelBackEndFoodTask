@@ -1,13 +1,15 @@
 import express from 'express';
 import balanceController from '../controllers/balance-controller';
 import authorization from '../controllers/authorization';
+import accountController from '../controllers/account-controller';
 
 const router = express.Router();
 
 router.route('/')
   .get((req, res, next) => {
     if (!('name' in req.query)) {
-      balanceController.findUserByUsername(req.parsedToken.username)
+      accountController.getUsername(req)
+        .then(username => balanceController.findUserByUsername(username))
         .then((response) => {
           res.status(200).send(response);
         })

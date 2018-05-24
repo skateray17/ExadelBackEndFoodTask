@@ -7,6 +7,7 @@ import balanceController from './balance-controller';
 export default {
   login, // eslint-disable-line
   untokenize, // eslint-disable-line
+  getUsername, // eslint-disable-line
 };
 
 function crypt(message, salt) {
@@ -55,6 +56,16 @@ function login(req) {
         message: 'Invalid username or password',
       },
     }))));
+}
+
+function getUsername(req) {
+  if (!req.parsedToken) {
+    return Promise.reject();
+  }
+  return User.findById({ _id: req.parsedToken.id }).then((user) => {
+    if (!user) return Promise.reject();
+    return user.email;
+  });
 }
 
 /**
