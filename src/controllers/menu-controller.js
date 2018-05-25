@@ -203,10 +203,8 @@ function addMenu(file, date) {
         { menu: MENU },
         { upsert: true },
       )
-        .then(async () => {
-          await updateCachedMenu();
-          return MENU;
-        });
+        .then(() => updateCachedMenu())
+        .then(() => MENU);
     }
     return Promise.reject(fileError);
   } catch (e) {
