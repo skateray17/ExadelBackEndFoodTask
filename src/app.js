@@ -8,6 +8,7 @@ import menuRouter from './routes/menu-router';
 import orderRouter from './routes/user-orders-router';
 import balanceRouter from './routes/balance-router';
 import authorization from './controllers/authorization';
+import userRouter from './routes/user-router';
 
 dotenv.config();
 const app = express();
@@ -29,6 +30,7 @@ app.use('/api/', authorization.authorizeUser);
 app.use('/api/menu', menuRouter);
 app.use('/api/order', orderRouter);
 app.use('/api/balance', balanceRouter);
+app.use('/api/user', userRouter);
 
 app.get('/swagger/:params*', (req, res) => res.sendFile(path.resolve(`${__dirname}/../${req.path}`)));
 

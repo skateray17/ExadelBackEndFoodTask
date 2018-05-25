@@ -5,9 +5,9 @@ import userTypes from '../models/user-types';
 import balanceController from './balance-controller';
 
 export default {
-    login, // eslint-disable-line
-    untokenize, // eslint-disable-line
-    getUsername, // eslint-disable-line
+  login, // eslint-disable-line
+  untokenize, // eslint-disable-line
+  getUsername, // eslint-disable-line
 };
 
 function crypt(message, salt) {
