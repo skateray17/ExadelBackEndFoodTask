@@ -62,14 +62,11 @@ function addZero(num) {
 
 function getStringDate(d) {
   const date = new Date(d);
-  let day = (date.getDate() - date.getDay()) + 1;
-  if (date.getDay() === 0) {
-    day -= 7;
-  }
-  day = addZero(day);
+  date.setDate((date.getDate() - (date.getDay() ? date.getDay() : 7)) + 1);
+  let day = addZero(date.getDate());
   let month = addZero(date.getMonth() + 1);
   let dateString = `${day}.${month}.${date.getFullYear()}-`;
-  date.setDate((date.getDate() - date.getDay()) + 7);
+  date.setDate(date.getDate() + 6);
   day = date.getDate();
   day = addZero(day);
   month = addZero(date.getMonth() + 1);
