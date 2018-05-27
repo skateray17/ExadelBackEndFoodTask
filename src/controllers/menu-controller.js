@@ -121,7 +121,7 @@ function getActualMenus() {
 function updateCachedMenu() {
   const date = new Date();
   const date1 = getStringDate(date);
-  date.setDate((date.getDate() - date.getDay()) + 8);
+  date.setDate((date.getDate() - (date.getDay() ? date.getDay() : 7)) + 8);
   const date2 = getStringDate(date);
   const MENUS = [];
   return Promise.all([Menu.findOne(({ date: date1 })), Menu.findOne(({ date: date2 }))])
