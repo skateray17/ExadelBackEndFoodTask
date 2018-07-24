@@ -22,6 +22,7 @@ router.route('/')
         });
     });
   })
+
   .put(authorization.authorizeAdmin)
   .put((req, res) => {
     if ('published' in req.body) {
@@ -44,9 +45,21 @@ router.route('/')
       res.status(500).send();
     }
   })
+
   .get((req, res) => {
     const MENUS = menuController.getActualMenus();
     res.status(200).send(MENUS);
+  })
+
+  .delete(authorization.authorizeAdmin)
+  .delete((req, res) => {
+    menuController.removeMenuByDate(req.body.date)
+      .then(() => (
+        menuController.updateCachedMenu()
+          .then(() => (res.status(200).send(menuController.getActualMenus())))
+      ))
+      .catch(err => res.status(500).send(err));
   });
+
 
 module.exports = router;
