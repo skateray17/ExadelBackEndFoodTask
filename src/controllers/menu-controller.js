@@ -8,6 +8,8 @@ export default {
   getCommonByDate,// eslint-disable-line
   setOrderAvailability,// eslint-disable-line
   publishMenu,// eslint-disable-line
+  removeMenuByDate,// eslint-disable-line
+  updateCachedMenu,// eslint-disable-line
 };
 
 let actualMenus = [];
@@ -282,6 +284,11 @@ function setOrderAvailability(isAvailable) {
       return Promise.reject();
     })
     .then(updateCachedMenu);
+}
+
+function removeMenuByDate(weekDuration) {
+  return Menu.remove({ date: weekDuration }).then(() => (Promise.resolve()))
+    .catch(() => (Promise.reject()));
 }
 
 updateCachedMenu();
