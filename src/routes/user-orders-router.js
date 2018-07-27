@@ -28,7 +28,7 @@ router.route('/')
   .put((req, res) => {
     User.findById({ _id: req.parsedToken.id })
       .then((user) => {
-          req.body.username = user.email;
+        req.body.username = user.email;
         return ordersController.addOrder(req.body);
       })
       .then((response) => {
