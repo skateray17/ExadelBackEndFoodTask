@@ -2,10 +2,6 @@ import UserOrders from '../models/UserOrders';
 import MenuController from '../controllers/menu-controller';
 import UserBalanceController from '../controllers/balance-controller';
 
-const orderError = {
-  message: 'no order',
-};
-
 // ПРИСЫЛАТЬ ВСЕ БЕЗ Z В КОНЦЕ!!!!!
 function setMidnight(date) {
   date.setHours(0);
@@ -113,12 +109,13 @@ function addOrder(order) {
     return UserOrders.findOne({ username: order.username, date: obj.date })
       .then(tmp => {
         if (!tmp) {
-          return Promise.reject(orderError);
+          return Promise.resolve({ totalPrice: 0 });
         }
         UserBalanceController.updateUserBalance(order.username, tmp.totalPrice)
       }
       )
-      .then(() => UserOrders.findOne({ username: order.username, date: obj.date }).remove().exec()
+      .then(() => UserOrders
+      .findOne({ username: order.username, date: obj.date }).remove().exec()
         .then(() => (Promise.resolve({ totalPrice: 0 }))));
   });
 }
