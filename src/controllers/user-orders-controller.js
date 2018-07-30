@@ -1,3 +1,4 @@
+import Moment from 'moment';
 import UserOrders from '../models/UserOrders';
 import MenuController from '../controllers/menu-controller';
 import UserBalanceController from '../controllers/balance-controller';
@@ -128,5 +129,92 @@ function getOrdersByDate(date) {
     .then(obj => ({ result: obj }));
 }
 
-export default { getOrders, addOrder, getOrdersByDate };
+
+function constructDate(day, month, year) {
+  const tempDate = Moment().utc().startOf('day').date(day)
+    .month(month - 1)
+    .year(year);
+
+  return tempDate;
+}
+
+function splitDate(date) {
+  const buffer = date.split('.');
+  return constructDate(buffer[0], buffer[1], buffer[2]);
+}
+
+function isCurrentDayAvailable(weekDuration, currentDate) {
+  let MENU = MenuController.getActualMenus();
+
+
+  if (MENU[0] !== undefined && MENU[0].date === weekDuration) {
+    MENU = MENU[0];
+  } else if (MENU[1] !== undefined && MENU[1].date === weekDuration) {
+    MENU = MENU[1];
+  } else {
+    return null;
+  }
+
+  const key = Object.keys(MENU).find((day) => {
+    if (MENU[day].day !== undefined
+        && MENU[day].day.getTime() === currentDate.getTime()) { return true; }
+    return false;
+  });
+  const tmp = MENU[key];
+
+  if (tmp !== undefined) return tmp.available;
+  return true;
+}
+function increaseUserBalance(orders) {
+  orders.forEach((order) => {
+    UserBalanceController.updateUserBalance(order.username, order.totalPrice);
+  });
+}
+
+
+function removeOrdersByDate(today, weekDuration) {
+  const currentDate = new Date(Moment.parseZone(today).utc().startOf('day'));
+  const weekDates = weekDuration.split('-');
+  const startWeekDate = new Date(splitDate(weekDates[0]));
+  const endWeekDate = new Date(splitDate(weekDates[1]));
+
+  const currentDayAvailability =
+  isCurrentDayAvailable(weekDuration, currentDate);
+  if (currentDayAvailability === null) {
+    return Promise.reject();
+  }
+
+
+  if (startWeekDate.getTime() <= currentDate.getTime()
+       && currentDate.getTime() <= endWeekDate.getTime()) {
+    if (currentDayAvailability) {
+      return UserOrders.find({ date: { $gte: currentDate, $lte: endWeekDate } })
+        .then((orders) => {
+          increaseUserBalance(orders);
+          return UserOrders.deleteMany({ date: { $gte: currentDate, $lte: endWeekDate } });
+        });
+    }
+
+    return UserOrders.find({ date: { $gt: currentDate, $lte: endWeekDate } })
+      .then((orders) => {
+        increaseUserBalance(orders);
+        return UserOrders.deleteMany({ date: { $gt: currentDate, $lte: endWeekDate } });
+      });
+  }
+  if (currentDate.getTime() < startWeekDate.getTime()) {
+    return UserOrders.find({ date: { $gte: startWeekDate, $lte: endWeekDate } })
+      .then((orders) => {
+        increaseUserBalance(orders);
+        return UserOrders.deleteMany({ date: { $gte: startWeekDate, $lte: endWeekDate } });
+      });
+  }
+  return Promise.reject();
+}
+
+export default {
+  getOrders,
+  addOrder,
+  getOrdersByDate,
+  removeOrdersByDate,
+};
 
