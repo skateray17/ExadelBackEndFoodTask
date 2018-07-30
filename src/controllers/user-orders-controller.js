@@ -108,8 +108,15 @@ function addOrder(order) {
     }
 
     return UserOrders.findOne({ username: order.username, date: obj.date })
-      .then(tmp => UserBalanceController.updateUserBalance(order.username, tmp.totalPrice))
-      .then(() => UserOrders.findOne({ username: order.username, date: obj.date }).remove().exec()
+      .then(tmp => {
+        if (!tmp) {
+          return Promise.resolve({ totalPrice: 0 });
+        }
+        UserBalanceController.updateUserBalance(order.username, tmp.totalPrice)
+      }
+      )
+      .then(() => UserOrders
+      .findOne({ username: order.username, date: obj.date }).remove().exec()
         .then(() => (Promise.resolve({ totalPrice: 0 }))));
   });
 }
