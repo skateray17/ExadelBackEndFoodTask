@@ -1,6 +1,7 @@
 import express from 'express';
 import menuController from '../controllers/menu-controller';
 import authorization from '../controllers/authorization';
+import ordersController from '../controllers/user-orders-controller';
 
 const router = express.Router();
 
@@ -55,8 +56,9 @@ router.route('/')
   .delete((req, res) => {
     menuController.removeMenuByDate(req.body.date)
       .then(() => (
-        menuController.updateCachedMenu()
-          .then(() => (res.status(200).send(menuController.getActualMenus())))
+        ordersController.removeOrdersByDate(req.body.today, req.body.date).then(() => (
+          menuController.updateCachedMenu()
+            .then(() => (res.status(200).send(menuController.getActualMenus())))))
       ))
       .catch(err => res.status(500).send(err));
   });
