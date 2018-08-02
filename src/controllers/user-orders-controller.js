@@ -2,6 +2,7 @@ import Moment from 'moment';
 import UserOrders from '../models/UserOrders';
 import MenuController from '../controllers/menu-controller';
 import UserBalanceController from '../controllers/balance-controller';
+import UserOrdersLogController from '../controllers/user-orders-log-controller';
 
 // ПРИСЫЛАТЬ ВСЕ БЕЗ Z В КОНЦЕ!!!!!
 function setMidnight(date) {
@@ -89,8 +90,10 @@ function addOrder(order) {
       return UserOrders.findOne({ username: order.username, date: obj.date })
         .then((tmp) => {
           if (tmp !== null) {
+            UserOrdersLogController.updateOrder(order.username, obj.date);
             return UserBalanceController.updateUserBalance(order.username, tmp.totalPrice - obj.totalPrice);
           }
+          UserOrdersLogController.makeOrder(order.username, obj.date);
           return UserBalanceController.updateUserBalance(order.username, -obj.totalPrice);
         })
         .then(() => UserOrders.update(
@@ -109,8 +112,12 @@ function addOrder(order) {
 
     return UserOrders.findOne({ username: order.username, date: obj.date })
       .then(tmp => UserBalanceController.updateUserBalance(order.username, tmp.totalPrice))
-      .then(() => UserOrders.findOne({ username: order.username, date: obj.date }).remove().exec()
-        .then(() => (Promise.resolve({ totalPrice: 0 }))));
+      .then(() => {
+        UserOrdersLogController.removeOrder(order.username, obj.date);
+        return UserOrders.findOne({ username: order.username, date: obj.date });
+      }).remove()
+      .exec()
+      .then(() => (Promise.resolve({ totalPrice: 0 })));
   });
 }
 
@@ -124,11 +131,9 @@ function getOrdersByDate(date) {
 
 
 function constructDate(day, month, year) {
-  const tempDate = Moment().utc().startOf('day').date(day)
+  return Moment().utc().startOf('day').date(day)
     .month(month - 1)
     .year(year);
-
-  return tempDate;
 }
 
 function splitDate(date) {
@@ -148,11 +153,8 @@ function isCurrentDayAvailable(weekDuration, currentDate) {
     return null;
   }
 
-  const key = Object.keys(MENU).find((day) => {
-    if (MENU[day].day !== undefined
-        && MENU[day].day.getTime() === currentDate.getTime()) { return true; }
-    return false;
-  });
+  const key = Object.keys(MENU).find(day => MENU[day].day !== undefined
+        && MENU[day].day.getTime() === currentDate.getTime());
   const tmp = MENU[key];
 
   if (tmp !== undefined) return tmp.available;
