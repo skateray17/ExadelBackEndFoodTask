@@ -6,4 +6,8 @@ export default {
   withdrawBalance: 'Balance have been withdrawn on ',
   updateBalance: 'Balance have been updated',
 
+  uploadMenu: 'Menu have been uploaded',
+  publishMenu: 'Menu have been published',
+  disableDay: 'Day have been disabled',
+  removeMenu: 'Menu have been removed',
 };
