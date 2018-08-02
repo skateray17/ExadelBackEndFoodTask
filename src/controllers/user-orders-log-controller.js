@@ -4,7 +4,7 @@ import Messages from '../models/Messages';
 function constructMessage(msg) {
   return { message: msg, logDate: Math.floor(Date.now()) };
 }
-function makeOrder(username, date) {
+function log(username, date, message) {
   return UserOrdersLog.update(
     { username, orderDate: date },
     {
@@ -12,41 +12,22 @@ function makeOrder(username, date) {
         orderDate: date,
         username,
       },
-      $push: { logs: constructMessage(Messages.makeOrder) },
+      $push: { logs: constructMessage(message) },
 
     },
     { new: true, upsert: true },
   );
+}
+function makeOrder(username, date) {
+  return log(username, date, Messages.makeOrder);
 }
 
 function removeOrder(username, date) {
-  return UserOrdersLog.update(
-    { username, orderDate: date },
-    {
-      $set: {
-        orderDate: date,
-        username,
-      },
-      $push: { logs: constructMessage(Messages.removeOrder) },
-
-    },
-    { new: true, upsert: true },
-  );
+  return log(username, date, Messages.removeOrder);
 }
 
 function updateOrder(username, date) {
-  return UserOrdersLog.update(
-    { username, orderDate: date },
-    {
-      $set: {
-        orderDate: date,
-        username,
-      },
-      $push: { logs: constructMessage(Messages.updateOrder) },
-
-    },
-    { new: true, upsert: true },
-  );
+  return log(username, date, Messages.updateOrder);
 }
 export default {
   makeOrder,

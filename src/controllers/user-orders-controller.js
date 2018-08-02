@@ -3,6 +3,7 @@ import UserOrders from '../models/UserOrders';
 import MenuController from '../controllers/menu-controller';
 import UserBalanceController from '../controllers/balance-controller';
 import UserOrdersLogController from '../controllers/user-orders-log-controller';
+import balanceLogController from '../controllers/balance-log-controller';
 
 // ПРИСЫЛАТЬ ВСЕ БЕЗ Z В КОНЦЕ!!!!!
 function setMidnight(date) {
@@ -94,6 +95,7 @@ function addOrder(order) {
             return UserBalanceController.updateUserBalance(order.username, tmp.totalPrice - obj.totalPrice);
           }
           UserOrdersLogController.makeOrder(order.username, obj.date);
+          balanceLogController.updateBalance(order.username);
           return UserBalanceController.updateUserBalance(order.username, -obj.totalPrice);
         })
         .then(() => UserOrders.update(

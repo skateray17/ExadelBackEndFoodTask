@@ -2,6 +2,7 @@ import express from 'express';
 import balanceController from '../controllers/balance-controller';
 import authorization from '../controllers/authorization';
 import accountController from '../controllers/account-controller';
+import balanceLogController from '../controllers/balance-log-controller';
 
 const router = express.Router();
 
@@ -37,6 +38,8 @@ router.route('/')
   .put((req, res) => {
     balanceController.updateUserBalance(req.body.username, req.body.balance)
       .then((response) => {
+        if (req.body.balance > 0) balanceLogController.replenishBalance(req.body.username, req.body.balance);
+        else if (req.body.balance < 0) { balanceLogController.withdrawBalance(req.body.username, req.body.balance); }
         res.status(200).send(response);
       })
       .catch((err) => {
