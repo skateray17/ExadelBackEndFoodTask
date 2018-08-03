@@ -1,5 +1,6 @@
 import XLSX from 'xlsx';
 import Menu from '../models/Menu';
+import MenuLogController from '../controllers/menu-log-controller';
 
 export default {
   addMenu,// eslint-disable-line
@@ -206,6 +207,7 @@ function addMenu(file, date) {
         { upsert: true },
       )
         .then(() => updateCachedMenu())
+        .then(() => MenuLogController.uploadMenu(MENU.date))
         .then(() => MENU);
     }
     return Promise.reject(fileError);
@@ -225,7 +227,8 @@ function publishMenu(body) {
       }
       updateCachedMenu();
       return Promise.resolve();
-    });
+    })
+    .then(() => MenuLogController.publishMenu(body.date));
 }
 
 /**
@@ -283,11 +286,14 @@ function setOrderAvailability(isAvailable) {
       }
       return Promise.reject();
     })
+    .then(() => MenuLogController.disableDay(stringDate))
     .then(updateCachedMenu);
 }
 
 function removeMenuByDate(weekDuration) {
-  return Menu.remove({ date: weekDuration }).then(() => (Promise.resolve()))
+  return Menu.remove({ date: weekDuration })
+    .then(() => (Promise.resolve()))
+    .then(() => MenuLogController.removeMenu())
     .catch(() => (Promise.reject()));
 }
 
