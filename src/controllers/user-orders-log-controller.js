@@ -21,9 +21,43 @@ function updateOrder(username, date) {
   return log(username, date, Messages.updateOrder);
 }
 
+function getLogs({
+  startDate,
+  endDate,
+  username,
+  orderDate,
+}) {
+  startDate = startDate || 0;
+  endDate = endDate || Date.now();
+
+  if (username && orderDate) {
+    return UserOrdersLog.find({
+      logDate: { $gte: startDate, $lte: endDate },
+      username,
+      orderDate,
+    });
+  }
+  if (username) {
+    return UserOrdersLog.find({
+      logDate: { $gte: startDate, $lte: endDate },
+      username,
+    });
+  }
+  if (orderDate) {
+    return UserOrdersLog.find({
+      logDate: { $gte: startDate, $lte: endDate },
+      orderDate,
+    });
+  }
+
+  return UserOrdersLog.find({
+    logDate: { $gte: startDate, $lte: endDate },
+  });
+}
 
 export default {
   makeOrder,
   removeOrder,
   updateOrder,
+  getLogs,
 };
