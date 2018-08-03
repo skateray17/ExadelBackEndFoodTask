@@ -1,21 +1,12 @@
 import MenuLog from '../models/MenuLog';
 import Messages from '../models/Messages';
 
-function constructMessage(msg) {
-  return { message: msg, logDate: Math.floor(Date.now()) };
-}
 function log(menuDate, message) {
-  return MenuLog.update(
-    { menuDate },
-    {
-      $set: {
-        menuDate,
-      },
-      $push: { logs: constructMessage(message) },
-
-    },
-    { new: true, upsert: true },
-  );
+  return new MenuLog({
+    menuDate,
+    message,
+    logDate: Math.floor(Date.now()),
+  }).save();
 }
 
 function uploadMenu(menuDate) {
@@ -30,6 +21,8 @@ function disableDay(menuDate) {
 function removeMenu(menuDate) {
   return log(menuDate, Messages.removeMenu);
 }
+
+
 export default {
   uploadMenu,
   publishMenu,
