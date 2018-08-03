@@ -22,10 +22,26 @@ function removeMenu(menuDate) {
   return log(menuDate, Messages.removeMenu);
 }
 
+function getLogs({ startDate, endDate, menuDate }) {
+  startDate = startDate || 0;
+  endDate = endDate || Date.now();
+
+  if (menuDate) {
+    return MenuLog.find({
+      logDate: { $gte: startDate, $lte: endDate },
+      menuDate,
+    });
+  }
+
+  return MenuLog.find({
+    logDate: { $gte: startDate, $lte: endDate },
+  });
+}
 
 export default {
   uploadMenu,
   publishMenu,
   disableDay,
   removeMenu,
+  getLogs,
 };
