@@ -7,8 +7,11 @@ function getLogs({ startDate, endDate }) {
   const obj = { startDate, endDate };
   return Promise.all([OrdersLogsController.getLogs(obj), MenuLogsController.getLogs(obj), BalanceLogsController.getLogs(obj)])
     .then((values) => {
-      const arr = [];
-      values.forEach(value => arr.concat(value));
+      let arr = [];
+      values.forEach((value) => {
+        arr = arr.concat(value);
+      });
+      arr = arr.sort((first, second) => first.logDate.getTime() - second.logDate.getTime());
       return arr;
     });
 }
