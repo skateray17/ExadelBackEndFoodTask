@@ -293,7 +293,7 @@ function setOrderAvailability(isAvailable) {
 function removeMenuByDate(weekDuration) {
   return Menu.remove({ date: weekDuration })
     .then(() => (Promise.resolve()))
-    .then(() => MenuLogController.removeMenu())
+    .then(() => MenuLogController.removeMenu(weekDuration))
     .catch(() => (Promise.reject()));
 }
 
