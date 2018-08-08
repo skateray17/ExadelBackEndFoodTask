@@ -1,24 +1,25 @@
-import BalanceLog from '../models/BalanceLog';
-import Messages from '../models/Messages';
 import Moment from 'moment/moment';
+import BalanceLog from '../models/BalanceLog';
 
-function log(username, message) {
+function log(username, message, currency, balanceChange) {
   return new BalanceLog({
     username,
     message,
     logDate: Math.floor(Date.now()),
+    balanceChange,
+    currency,
   }).save();
 }
-function replenishBalance(username, balance) {
-  return log(username, `${Messages.replenishBalance + balance}BYN`);
+function replenishBalance(username, balanceChange) {
+  return log(username, 'replenishBalance', 'BYN', balanceChange);
 }
 
-function withdrawBalance(username, balance) {
-  return log(username, `${Messages.withdrawBalance + balance}BYN`);
+function withdrawBalance(username, balanceChange) {
+  return log(username, 'withdrawBalance', 'BYN', balanceChange);
 }
 
-function updateBalance(username) {
-  return log(username, Messages.updateBalance);
+function updateBalance(username, balanceChange) {
+  return log(username, 'updateBalance', 'BYN', balanceChange);
 }
 function getLogs({ startDate, endDate, username }) {
   startDate = Moment.parseZone(startDate || 0).utc();
