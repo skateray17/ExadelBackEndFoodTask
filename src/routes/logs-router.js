@@ -10,10 +10,17 @@ const router = express.Router();
 router.route('/')
   .get(authorization.authorizeAdmin)
   .get((req, res) => {
-    const { startDate, endDate, type } = req.query;
+    const {
+      startDate,
+      endDate,
+      type,
+      menuDate,
+      username,
+      orderDate,
+    } = req.query;
     switch (type) {
       case 'menu': {
-        menuLogsController.getLogs({ startDate, endDate })
+        menuLogsController.getLogs({ startDate, endDate, menuDate })
           .then((response) => {
             res.status(200).send(response);
           })
@@ -24,7 +31,20 @@ router.route('/')
         break;
       }
       case 'balance': {
-        balanceLogsController.getLogs({ startDate, endDate })
+        balanceLogsController.getLogs({ startDate, endDate, username })
+          .then((response) => {
+            res.status(200).send(response);
+          })
+          .catch((err) => {
+            res.status(500).send(err);
+          });
+
+        break;
+      }
+      case 'orders': {
+        balanceLogsController.getLogs({
+          startDate, endDate, orderDate, username,
+        })
           .then((response) => {
             res.status(200).send(response);
           })
@@ -44,7 +64,7 @@ router.route('/')
           });
       }
     }
-  })
+  });
 
 
 module.exports = router;
