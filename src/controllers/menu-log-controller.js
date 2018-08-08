@@ -10,16 +10,16 @@ function log(menuDate, message) {
 }
 
 function uploadMenu(menuDate) {
-  return log(menuDate, Messages.uploadMenu);
+  return log(menuDate, 'uploadMenu');
 }
 function publishMenu(menuDate) {
-  return log(menuDate, Messages.publishMenu);
+  return log(menuDate, 'publishMenu');
 }
 function disableDay(menuDate) {
-  return log(menuDate, Messages.disableDay);
+  return log(menuDate, 'disableDay');
 }
 function removeMenu(menuDate) {
-  return log(menuDate, Messages.removeMenu);
+  return log(menuDate, 'removeMenu');
 }
 
 function getLogs({ startDate, endDate, menuDate }) {

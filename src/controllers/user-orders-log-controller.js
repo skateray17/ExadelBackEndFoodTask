@@ -10,15 +10,15 @@ function log(username, orderDate, message) {
   }).save();
 }
 function makeOrder(username, date) {
-  return log(username, date, Messages.makeOrder);
+  return log(username, date, 'makeOrder');
 }
 
 function removeOrder(username, date) {
-  return log(username, date, Messages.removeOrder);
+  return log(username, date, 'removeOrder');
 }
 
 function updateOrder(username, date) {
-  return log(username, date, Messages.updateOrder);
+  return log(username, date, 'updateOrder');
 }
 
 function getLogs({
