@@ -1,5 +1,6 @@
 import UserOrdersLog from '../models/UserOrdersLog';
 import Messages from '../models/Messages';
+import Moment from 'moment/moment';
 
 function log(username, orderDate, message) {
   return new UserOrdersLog({
@@ -27,8 +28,8 @@ function getLogs({
   username,
   orderDate,
 }) {
-  startDate = startDate || 0;
-  endDate = endDate || Date.now();
+  startDate = Moment.parseZone(startDate || 0).utc();
+  endDate = Moment.parseZone(endDate || Date.now()).utc();
 
   if (username && orderDate) {
     return UserOrdersLog.find({

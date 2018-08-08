@@ -16,6 +16,7 @@ function getLogs({ startDate, endDate }) {
     });
 }
 
+
 export default {
   getLogs,
 };
