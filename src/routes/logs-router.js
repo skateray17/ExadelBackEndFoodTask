@@ -2,6 +2,7 @@ import express from 'express';
 import logsController from '../controllers/logs-controller';
 import menuLogsController from '../controllers/menu-log-controller';
 import balanceLogsController from '../controllers/balance-log-controller';
+import userOrdersLogsControllers from '../controllers/user-orders-controller';
 
 import authorization from '../controllers/authorization';
 
@@ -42,7 +43,7 @@ router.route('/')
         break;
       }
       case 'orders': {
-        balanceLogsController.getLogs({
+        userOrdersLogsControllers.getLogs({
           startDate, endDate, orderDate, username,
         })
           .then((response) => {
