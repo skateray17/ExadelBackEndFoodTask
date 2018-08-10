@@ -29,6 +29,7 @@ function untokenize(token) {
 }
 
 function login(req) {
+  
   return User.findOne({ email: req.email })
     .then((user) => {
       const passHash = crypt(req.password, user.passwordSalt);
