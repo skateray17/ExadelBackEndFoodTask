@@ -1,4 +1,6 @@
+import Moment from 'moment/moment';
 import BalanceLog from '../models/BalanceLog';
+
 
 function log(username, message, currency, balanceChange) {
   return new BalanceLog({
@@ -18,12 +20,12 @@ function withdrawBalance(username, balanceChange) {
 }
 
 function updateBalance(username, balanceChange) {
-  return log(username, 'updateBalance', 
+  return log(username, 'updateBalance',
   , balanceChange);
 }
 function getLogs({ startDate, endDate, username }) {
-  startDate = startDate || 0;
-  endDate = endDate || Date.now();
+  startDate = Moment.parseZone(startDate || 0).utc();
+  endDate = Moment.parseZone(endDate || Date.now()).utc();
 
   if (username) {
     return BalanceLog.find({

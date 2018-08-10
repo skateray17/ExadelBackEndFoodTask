@@ -1,3 +1,4 @@
+import Moment from 'moment';
 import MenuLog from '../models/MenuLog';
 import Messages from '../models/Messages';
 
@@ -23,8 +24,8 @@ function removeMenu(menuDate) {
 }
 
 function getLogs({ startDate, endDate, menuDate }) {
-  startDate = startDate || 0;
-  endDate = endDate || Date.now();
+  startDate = Moment.parseZone(startDate || 0).utc();
+  endDate = Moment.parseZone(endDate || Date.now()).utc();
 
   if (menuDate) {
     return MenuLog.find({
