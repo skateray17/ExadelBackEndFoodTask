@@ -2,7 +2,7 @@ import express from 'express';
 import logsController from '../controllers/logs-controller';
 import menuLogsController from '../controllers/menu-log-controller';
 import balanceLogsController from '../controllers/balance-log-controller';
-import userOrdersLogsControllers from '../controllers/user-orders-controller';
+import userOrdersLogsControllers from '../controllers/user-orders-log-controller';
 
 import authorization from '../controllers/authorization';
 

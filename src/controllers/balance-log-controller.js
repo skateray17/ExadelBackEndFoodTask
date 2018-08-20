@@ -20,8 +20,7 @@ function withdrawBalance(username, balanceChange) {
 }
 
 function updateBalance(username, balanceChange) {
-  return log(username, 'updateBalance',
-  , balanceChange);
+  return log(username, 'updateBalance', 'BYN', balanceChange);
 }
 function getLogs({ startDate, endDate, username }) {
   startDate = Moment.parseZone(startDate || 0).utc();

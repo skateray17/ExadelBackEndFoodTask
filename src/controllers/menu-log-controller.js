@@ -1,26 +1,26 @@
 import Moment from 'moment';
 import MenuLog from '../models/MenuLog';
-import Messages from '../models/Messages';
 
-function log(menuDate, message) {
+function log(menuDate, message, vendorName) {
   return new MenuLog({
     menuDate,
+    vendorName,
     message,
     logDate: Math.floor(Date.now()),
   }).save();
 }
 
-function uploadMenu(menuDate) {
-  return log(menuDate, 'uploadMenu');
+function uploadMenu(menuDate, vendorName) {
+  return log(menuDate, 'uploadMenu', vendorName);
 }
-function publishMenu(menuDate) {
-  return log(menuDate, 'publishMenu');
+function publishMenu(menuDate, vendorName) {
+  return log(menuDate, 'publishMenu', vendorName);
 }
-function disableDay(menuDate) {
-  return log(menuDate, 'disableDay');
+function disableDay(menuDate, vendorName) {
+  return log(menuDate, 'disableDay', vendorName);
 }
-function removeMenu(menuDate) {
-  return log(menuDate, 'removeMenu');
+function removeMenu(menuDate, vendorName) {
+  return log(menuDate, 'removeMenu', vendorName);
 }
 
 function getLogs({ startDate, endDate, menuDate }) {

@@ -9,7 +9,7 @@ export default {
   getCommonByDate,// eslint-disable-line
   setOrderAvailability,// eslint-disable-line
   publishMenu,// eslint-disable-line
-  removeMenuByDate,// eslint-disable-line
+  removeMenuByDateAndVendor,// eslint-disable-line
   updateCachedMenu,// eslint-disable-line
 };
 
@@ -126,17 +126,10 @@ function updateCachedMenu() {
   const date1 = getStringDate(date);
   date.setDate((date.getDate() - (date.getDay() ? date.getDay() : 7)) + 8);
   const date2 = getStringDate(date);
-  const MENUS = [];
-  return Promise.all([Menu.findOne(({ date: date1 })), Menu.findOne(({ date: date2 }))])
+  return Promise.all([Menu.find(({ date: date1 })), Menu.find(({ date: date2 }))])
     .then((results) => {
-      if (results[0]) {
-        MENUS[0] = results[0].menu;
-      }
-      if (results[1]) {
-        MENUS[1] = results[1].menu;
-      }
-      actualMenus = MENUS;
-      return MENUS;
+      actualMenus = results;
+      return results;
     });
 }
 
@@ -180,7 +173,7 @@ function makeMenu(book) {
   return MENU;
 }
 
-function addMenu(file, date) {
+function addMenu(file, date, vendorName) {
   try {
     let book = XLSX.read(file);
     book = book.Sheets[book.SheetNames[0]];
@@ -202,12 +195,12 @@ function addMenu(file, date) {
     if (validateMenu(MENU)) {
       MENU.published = false;
       return Menu.findOneAndUpdate(
-        { date: MENU.date },
+        { date: MENU.date, vendorName },
         { menu: MENU },
         { upsert: true },
       )
         .then(() => updateCachedMenu())
-        .then(() => MenuLogController.uploadMenu(MENU.date))
+        .then(() => MenuLogController.uploadMenu(MENU.date, vendorName))
         .then(() => MENU);
     }
     return Promise.reject(fileError);
@@ -216,10 +209,10 @@ function addMenu(file, date) {
   }
 }
 
-function publishMenu(body) {
+function publishMenu({ date, published, vendorName }) {
   return Menu.update(
-    { date: body.date },
-    { $set: { 'menu.published': body.published } },
+    { date, vendorName },
+    { $set: { 'menu.published': published } },
   )
     .then((el) => {
       if (!el) {
@@ -228,7 +221,7 @@ function publishMenu(body) {
       updateCachedMenu();
       return Promise.resolve();
     })
-    .then(() => MenuLogController.publishMenu(body.date));
+    .then(() => MenuLogController.publishMenu(date, vendorName));
 }
 
 /**
@@ -274,26 +267,30 @@ function getCommonByDate(date) {
 function setOrderAvailability(isAvailable) {
   const date = new Date();
   const stringDate = getStringDate(date);
-  return Menu.findOne({
+  return Menu.find({
     date: stringDate,
   })
-    .then((MENU) => {
-      if (MENU) {
-        const { menu, _id } = MENU;
-        const day = unDay[date.getDay() - 1];
-        menu[day].available = isAvailable;
-        return Menu.findByIdAndUpdate(_id, { $set: { menu } });
+    .then((MENUS) => {
+      const setOrderAvailabilityPromises = [];
+      if (MENUS.length) {
+        MENUS.forEach((MENU) => {
+          const { menu, _id } = MENU;
+          const day = unDay[date.getDay() - 1];
+          menu[day].available = isAvailable;
+          setOrderAvailabilityPromises.push(Menu.findByIdAndUpdate(_id, { $set: { menu } }));
+        });
+        return Promise.all(setOrderAvailabilityPromises);
       }
       return Promise.reject();
     })
-    .then(() => MenuLogController.disableDay(stringDate))
+    .then(() => MenuLogController.disableDay(stringDate, 'ALL'))
     .then(updateCachedMenu);
 }
 
-function removeMenuByDate(weekDuration) {
-  return Menu.remove({ date: weekDuration })
+function removeMenuByDateAndVendor(weekDuration, vendorName) {
+  return Menu.remove({ date: weekDuration, vendorName })
     .then(() => (Promise.resolve()))
-    .then(() => MenuLogController.removeMenu(weekDuration))
+    .then(() => MenuLogController.removeMenu(weekDuration, vendorName))
     .catch(() => (Promise.reject()));
 }
 
