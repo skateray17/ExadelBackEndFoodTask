@@ -1,6 +1,5 @@
-import UserOrdersLog from '../models/UserOrdersLog';
-import Messages from '../models/Messages';
 import Moment from 'moment/moment';
+import UserOrdersLog from '../models/UserOrdersLog';
 
 function log(username, orderDate, message) {
   return new UserOrdersLog({

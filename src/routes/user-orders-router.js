@@ -1,32 +1,36 @@
 import express from 'express';
 import ordersController from '../controllers/user-orders-controller';
-import User from '../models/User';
-import userTypes from '../models/user-types';
+import Employee from '../models/Employee';
+import accountController from '../controllers/account-controller';
+
 
 const router = express.Router();
 
+
 router.route('/')
   .get((req, res) => {
-    if (req.query.currentDate === undefined) {
-      User.findById({ _id: req.parsedToken.id })
-        .then(user => ordersController
-          .getOrders(user.email, { startDate: req.query.startDate, endDate: req.query.endDate }))
-        .then((response) => {
-          res.status(200).send(response);
-        })
-        .catch((err) => { res.status(500).send(err); });
-    } else if (req.parsedToken.type >= userTypes.ADMIN) {
-      ordersController.getOrdersByDate(req.query.currentDate).then((response) => {
-        res.status(200).send(response);
-      }).catch((err) => { res.status(500).send(err); });
-    } else {
-      res.status(500).send(new Error());
-    }
+    accountController.getLoginStatus(req)
+      .then((rvisionRes) => {
+        if (req.query.currentDate === undefined) {
+          return Employee.find({ email: rvisionRes.data.login })
+            .then(user => ordersController
+              .getOrders(user.email, { startDate: req.query.startDate, endDate: req.query.endDate }))
+            .then((response) => {
+              res.status(200).send(response);
+            });
+        } else if (rvisionRes.data.permissions.includes('efds_admin')) {
+          return ordersController.getOrdersByDate(req.query.currentDate).then((response) => {
+            res.status(200).send(response);
+          });
+        }
+        return res.status(500).send(new Error());
+      }).catch(err => res.status(500).send(err));
   });
 
 router.route('/')
   .put((req, res) => {
-    User.findById({ _id: req.parsedToken.id })
+    accountController.getLoginStatus(req)
+      .then(rvisionRes => Employee.findById({ email: rvisionRes.data.login }))
       .then((user) => {
         req.body.username = user.email;
         return ordersController.addOrder(req.body);

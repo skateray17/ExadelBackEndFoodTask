@@ -1,6 +1,5 @@
 import Moment from 'moment';
 import MenuLog from '../models/MenuLog';
-import Messages from '../models/Messages';
 
 function log(menuDate, message) {
   return new MenuLog({

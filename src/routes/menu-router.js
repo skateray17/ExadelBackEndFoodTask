@@ -55,11 +55,9 @@ router.route('/')
   .delete(authorization.authorizeAdmin)
   .delete((req, res) => {
     menuController.removeMenuByDate(req.body.date)
-      .then(() => (
-        ordersController.removeOrdersByDate(req.body.today, req.body.date).then(() => (
-          menuController.updateCachedMenu()
-            .then(() => (res.status(200).send(menuController.getActualMenus())))))
-      ))
+      .then(() => ordersController.removeOrdersByDate(req.body.today, req.body.date))
+      .then(() => menuController.updateCachedMenu())
+      .then(() => res.status(200).send(menuController.getActualMenus()))
       .catch(err => res.status(500).send(err));
   });
 

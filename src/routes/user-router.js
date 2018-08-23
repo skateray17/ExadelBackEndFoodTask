@@ -1,16 +1,12 @@
 import express from 'express';
-import axios from 'axios';
 import Employee from '../models/Employee';
-import ExternalLinks from '../models/extrnal-links';
+import accountController from '../controllers/account-controller';
 
 const router = express.Router();
 
 router.route('/')
   .get((req, res) => {
-    axios(`${ExternalLinks.rvisionLink}/security/getLoginStatus`, {
-      headers: { cookie: req.headers.cookie },
-      method: 'GET',
-    })
+    accountController.getLoginStatus(req)
       .then((response) => {
         if (response.data.loginStatus === 'loggedIn') {
           if (response.data.permissions.includes('efds_admin')) { return { login: response.data.login, type: 10 }; }
@@ -20,8 +16,13 @@ router.route('/')
       })
       .then(userInfo => Employee.findOne({ username: userInfo.login }).then((user) => {
         if (!user) return Promise.reject();
-        user.type = userInfo.type;
-        return res.send(user);
+        const {
+          firstName, lastName, id, email,
+        } = user;
+        const tmp = {
+          firstName, lastName, id, email, type: userInfo.type,
+        };
+        return res.send(tmp);
       }))
       .catch(err => res.status(500).send(err));
   });

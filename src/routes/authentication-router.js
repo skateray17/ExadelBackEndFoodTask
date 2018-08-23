@@ -10,7 +10,7 @@ const LocalStrategy = require('passport-local').Strategy;
 
 const router = express.Router();
 passport.use(new LocalStrategy((username, password, done) => {
-  Employee.findOne({ username }, (err, user) => {
+  Employee.findOne({ email: username }, (err, user) => {
     if (err) { return done(err); }
     if (!user) {
       return done(null, null, { username, password });

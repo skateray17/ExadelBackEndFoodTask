@@ -11,11 +11,11 @@ const router = express.Router();
 
 
 router.use('/api/account', authenticationRouter);
-router.use('/api/', accountController.getLoginStatus);
-router.use('/api/menu', menuRouter);
-router.use('/api/order', orderRouter);
-router.use('/api/balance', balanceRouter);
 router.use('/api/user', userRouter);
+router.use('/api/order', orderRouter);
+router.use('/api/', accountController.checkLoginStatus);
+router.use('/api/menu', menuRouter);
+router.use('/api/balance', balanceRouter);
 router.use('/api/logs', logsRouter);
 
 module.exports = router;

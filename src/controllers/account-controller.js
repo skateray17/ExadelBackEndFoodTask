@@ -1,14 +1,12 @@
 import axios from 'axios/index';
-import User from '../models/User';
-import balanceController from './balance-controller';
 import ExternalLinks from '../models/extrnal-links';
 import UserBalance from '../models/UserBalance';
 import Employee from '../models/Employee';
 
 export default {
   login, // eslint-disable-line
-  getUsername, // eslint-disable-line
   firstLogin,// eslint-disable-line
+  checkLoginStatus,// eslint-disable-line
   getLoginStatus,// eslint-disable-line
 };
 
@@ -25,15 +23,7 @@ function login(req, res, userCredential) {
     })
     .catch(() => res.status(500).end('Server Error'));
 }
-function getUsername(req) {
-  if (!req.parsedToken) {
-    return Promise.reject();
-  }
-  return User.findById({ _id: req.parsedToken.id }).then((user) => {
-    if (!user) return Promise.reject();
-    return user.email;
-  });
-}
+
 function firstLogin(req, res, userCredential) {
   return axios.post(`${ExternalLinks.rvisionLink}/security/login?username=${userCredential.username}&password=${userCredential.password}`)
     .then((rvisionRes) => {
@@ -46,13 +36,13 @@ function firstLogin(req, res, userCredential) {
           new Employee({
             firstName: data.firstName,
             lastName: data.lastName,
-            username: data.login,
+            email: data.login,
             id: data.id,
           }).save();
           new UserBalance({
             firstName: data.firstName,
             lastName: data.lastName,
-            username: data.login,
+            email: data.login,
             balance: 0,
           }).save();
         }).catch(() => res.status(502).send('Failed to load data'));
@@ -64,7 +54,7 @@ function firstLogin(req, res, userCredential) {
     .catch(() => res.status(500).end('Server Error'));
 }
 
-function getLoginStatus(req, res, next) {
+function checkLoginStatus(req, res, next) {
   return axios(`${ExternalLinks.rvisionLink}/security/getLoginStatus`, {
     headers: { cookie: req.headers.cookie },
     method: 'GET',
@@ -74,4 +64,16 @@ function getLoginStatus(req, res, next) {
     }
     return res.status(401).end();
   }).catch(() => res.status(500).end());
+}
+
+function getLoginStatus(req) {
+  return axios(`${ExternalLinks.rvisionLink}/security/getLoginStatus`, {
+    headers: { cookie: req.headers.cookie },
+    method: 'GET',
+  }).then((response) => {
+    if (response.data.loginStatus === 'loggedIn') {
+      return Promise.resolve(response);
+    }
+    return Promise.reject();
+  });
 }
