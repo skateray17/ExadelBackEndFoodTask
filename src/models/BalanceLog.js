@@ -1,7 +1,10 @@
 import mongoose from 'mongoose';
 
 const BalanceLogSchema = new mongoose.Schema({
-  logs: [{ message: String, logDate: { type: Date, default: Date.now } }],
+  message: String,
+  balanceChange: Number,
+  currency: String,
+  logDate: { type: Date, default: Date.now },
   username: String,
 });
 
