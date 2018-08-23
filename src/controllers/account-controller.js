@@ -1,63 +1,30 @@
-import JWT from 'jsonwebtoken';
-import crypto from 'crypto';
+import axios from 'axios/index';
 import User from '../models/User';
-import userTypes from '../models/user-types';
 import balanceController from './balance-controller';
+import ExternalLinks from '../models/extrnal-links';
+import UserBalance from '../models/UserBalance';
+import Employee from '../models/Employee';
 
 export default {
   login, // eslint-disable-line
-  untokenize, // eslint-disable-line
   getUsername, // eslint-disable-line
+  firstLogin,// eslint-disable-line
+  getLoginStatus,// eslint-disable-line
 };
 
-function crypt(message, salt) {
-  return crypto.pbkdf2Sync(
-    message, salt, Number.parseInt(process.env.CRYPTO_ITERATIONS, 10),
-    Number.parseInt(process.env.CRYPTO_KEYLEN, 10), 'sha512',
-  ).toString('hex');
-}
 
-function untokenize(token) {
-  return new Promise((resolve, reject) => {
-    JWT.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
-      if (err || !decodedToken) {
-        return reject(err);
+function login(req, res, userCredential) {
+  axios.post(`${ExternalLinks.rvisionLink}/security/login?username=${userCredential.username}&password=${userCredential.password}`)
+    .then((rvisionRes) => {
+      console.log(rvisionRes.data);
+      if (rvisionRes.data.success) {
+        res.setHeader('set-cookie', rvisionRes.headers['set-cookie']);
+        return res.status(200).send('Success');
       }
-      return resolve(decodedToken);
-    });
-  });
-}
-
-function login(req) {
-  return User.findOne({ email: req.email })
-    .then((user) => {
-      const passHash = crypt(req.password, user.passwordSalt);
-      if (passHash !== user.passwordHash) {
-        return Promise.reject();
-      }
-      // eslint-disable-next-line no-underscore-dangle
-      const token = JWT.sign({ id: user._id, type: user.type }, process.env.JWT_SECRET, {
-        expiresIn: 60 * 60 * 24 * 7, // expires in 7 days
-      });
-      balanceController.checkUserBalance(user.email, user.firstName, user.lastName);
-      return {
-        status: 200,
-        response: {
-          token,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          type: user.type,
-        },
-      };
+      return res.status(403).send(rvisionRes.data.statusMsg);
     })
-    .catch(() => Promise.reject(new Error(JSON.stringify({
-      status: 401,
-      response: {
-        message: 'Invalid username or password',
-      },
-    }))));
+    .catch(() => res.status(500).end('Server Error'));
 }
-
 function getUsername(req) {
   if (!req.parsedToken) {
     return Promise.reject();
@@ -67,27 +34,44 @@ function getUsername(req) {
     return user.email;
   });
 }
+function firstLogin(req, res, userCredential) {
+  return axios.post(`${ExternalLinks.rvisionLink}/security/login?username=${userCredential.username}&password=${userCredential.password}`)
+    .then((rvisionRes) => {
+      if (rvisionRes.data.success) {
+        axios(`${ExternalLinks.rvisionLink}/resources/getGeneralData?id=${rvisionRes.data.userId}`, {
+          headers: { Cookie: rvisionRes.headers['set-cookie'].map(el => el.split(' ')[0]).join(' ') },
+          method: 'GET',
+        }).then(({ data }) => {
+          [data] = data.data;
+          new Employee({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            username: data.login,
+            id: data.id,
+          }).save();
+          new UserBalance({
+            firstName: data.firstName,
+            lastName: data.lastName,
+            username: data.login,
+            balance: 0,
+          }).save();
+        }).catch(() => res.status(502).send('Failed to load data'));
+        res.setHeader('set-cookie', rvisionRes.headers['set-cookie']);
+        return res.status(202).send('Success');
+      }
+      return res.status(403).send(rvisionRes.data.statusMsg);
+    })
+    .catch(() => res.status(500).end('Server Error'));
+}
 
-/**
- * @description т.к. у нас не будет реистрации, то она сделана просто для добавления пользователей
- * в DB, а также тестирования авторизациии
- */
-function addUser(email, password, firstName, lastName, role = userTypes.BASIC_USER) {
-  if (!email || !password) return false;
-  User.findOne({ email })
-    .then((res) => { if (!res) throw res; })
-    .catch(() => {
-      const salt = crypto.randomBytes(64).toString('hex');
-      const user = new User({
-        email,
-        type: role,
-        passwordHash: crypt(password, salt),
-        firstName,
-        lastName,
-        passwordSalt: salt,
-      });
-      user.save()
-        .catch(err => console.log(err));
-    });
-  return true;
+function getLoginStatus(req, res, next) {
+  return axios(`${ExternalLinks.rvisionLink}/security/getLoginStatus`, {
+    headers: { cookie: req.headers.cookie },
+    method: 'GET',
+  }).then((response) => {
+    if (response.data.loginStatus === 'loggedIn') {
+      return next();
+    }
+    return res.status(401).end();
+  }).catch(() => res.status(500).end());
 }
