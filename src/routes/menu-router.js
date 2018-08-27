@@ -8,13 +8,13 @@ const router = express.Router();
 router.route('/')
   .post(authorization.authorizeAdmin)
   .post((req, res) => {
-    const { date } = req.query;
+    const { date, vendorName } = req.query;
     const buffer = [];
     req.on('data', (chunk) => {
       buffer.push(chunk);
     }).on('end', () => {
       const file = Buffer.concat(buffer);
-      menuController.addMenu(file, date)
+      menuController.addMenu(file, date, vendorName)
         .then((response) => {
           res.status(200).send(response);
         })
@@ -54,12 +54,11 @@ router.route('/')
 
   .delete(authorization.authorizeAdmin)
   .delete((req, res) => {
-    menuController.removeMenuByDate(req.body.date)
-      .then(() => (
-        ordersController.removeOrdersByDate(req.body.today, req.body.date).then(() => (
-          menuController.updateCachedMenu()
-            .then(() => (res.status(200).send(menuController.getActualMenus())))))
-      ))
+    const { date, vendorName, today } = req.body;
+    menuController.removeMenuByDateAndVendor(date, vendorName)
+      .then(() => ordersController.removeOrdersByDate(today, date, vendorName))
+      .then(() => menuController.updateCachedMenu())
+      .then(() => res.status(200).send(menuController.getActualMenus()))
       .catch(err => res.status(500).send(err));
   });
 
