@@ -227,12 +227,13 @@ function publishMenu({ date, published, vendorName }) {
 /**
  * special functions for Orders Services
  */
-function getMenuByDate(date) {
+function getMenuByDate(date, vendorName) {
   let menu;
-  actualMenus.forEach((MENU) => {
-    Object.keys(MENU).forEach((el) => {
-      const menuOnDay = MENU[el];
-      if (menuOnDay.day && compareDates(new Date(menuOnDay.day), new Date(date))) {
+  const allMenusForTwoWeeks = [...actualMenus[0], ...actualMenus[1]];
+  allMenusForTwoWeeks.forEach((MENU) => {
+    Object.keys(MENU.menu).forEach((el) => {
+      const menuOnDay = MENU.menu[el];
+      if (MENU.vendorName === vendorName && menuOnDay.day && compareDates(new Date(menuOnDay.day), new Date(date))) {
         menu = menuOnDay.menu;// eslint-disable-line
       }
     });
@@ -240,17 +241,18 @@ function getMenuByDate(date) {
   return menu;
 }
 
-function getCommonByDate(date) {
+function getCommonByDate(date, vendorName) {
   let common;
   let flag = false;
-  actualMenus.forEach((MENU) => {
-    Object.keys(MENU).forEach((el) => {
-      if (el !== 'date') {
-        const menuOnDay = MENU[el];
+  const allMenusForTwoWeeks = [...actualMenus[0], ...actualMenus[1]];
+  allMenusForTwoWeeks.forEach((MENU) => {
+    Object.keys(MENU.menu).forEach((el) => {
+      if (el !== 'date' && el !== 'vendorName') {
+        const menuOnDay = MENU.menu[el];
         if (menuOnDay.day && compareDates(new Date(menuOnDay.day), new Date(date))) {
           flag = true;
         }
-        if (flag && el === 'common') {
+        if (flag && el === 'common' && MENU.vendorName === vendorName) {
           common = menuOnDay.menu;
           flag = false;
         }

@@ -7,8 +7,7 @@ import balanceLogController from '../controllers/balance-log-controller';
 
 // ПРИСЫЛАТЬ ВСЕ БЕЗ Z В КОНЦЕ!!!!!
 function setMidnight(date) {
-  date.setHours(0);
-  date.setMinutes(0, 0, 0);
+  return new Date(Moment.parseZone(date).utc().startOf('day'));
 }
 
 function addDaysToDate(date, daysToAdd) {
@@ -16,25 +15,20 @@ function addDaysToDate(date, daysToAdd) {
 }
 
 function getOrders(username, dates) {
-  let startDate;
-  let endDate;
+  let { startDate, endDate } = dates;
   if (dates.startDate && dates.endDate) {
-    startDate = new Date(dates.startDate);
-    setMidnight(startDate);
+    startDate = setMidnight(startDate);
+    endDate = setMidnight(endDate);
 
-    endDate = new Date(dates.endDate);
-    setMidnight(endDate);
     return UserOrders.find({ username, date: { $gte: startDate, $lte: endDate } })
       .then(obj => ({ result: obj }));
   } else if (dates.startDate) {
-    startDate = new Date(dates.startDate);
-    setMidnight(startDate);
+    startDate = setMidnight(startDate);
 
     return UserOrders.find({ username, date: { $gte: startDate } })
       .then(obj => ({ result: obj }));
   } else if (dates.endDate) {
-    endDate = new Date(dates.endDate);
-    setMidnight(endDate);
+    endDate = setMidnight(endDate);
 
     return UserOrders.find({ username, date: { $lte: endDate } })
       .then(obj => ({ result: obj }));
@@ -44,15 +38,16 @@ function getOrders(username, dates) {
 }
 
 
-function isOrderValid(order, orderDate) {
-  const maxTime = new Date();
+function isOrderValid(order, vendorName, orderDate) {
+  let maxTime = new Date();
   addDaysToDate(maxTime, 14);
-  setMidnight(maxTime);
-  const minTime = new Date();
-  setMidnight(minTime);
+  maxTime = setMidnight(maxTime);
+
+  let minTime = new Date();
+  minTime = setMidnight(minTime);
   let sum = 0;
-  const MENU = MenuController.getCommonByDate(orderDate)
-    .concat(MenuController.getMenuByDate(orderDate));
+  const MENU = MenuController.getCommonByDate(orderDate, vendorName)
+    .concat(MenuController.getMenuByDate(orderDate, vendorName));
 
   if (orderDate.getTime() <= maxTime.getTime() && orderDate.getTime() >= minTime.getTime()) {
     if (order.dishList.length && order.dishList.every(dish => MENU.some((menuPoint) => {
@@ -71,62 +66,65 @@ function isOrderValid(order, orderDate) {
   return 0;
 }
 
-function validateOrder(order) {
-  const orderDate = new Date(order.date);
-  setMidnight(orderDate);
+function calculateOrderSum(order, vendorName) {
+  order.date = setMidnight(new Date(order.date));
 
-  const sum = isOrderValid(order, orderDate);
+  const totalPrice = isOrderValid(order, vendorName, order.date);
 
-  if (sum) {
-    return Promise.resolve({
-      username: order.username, dishList: order.dishList, date: orderDate, totalPrice: sum,
-    });
+  if (totalPrice) {
+    return Promise.resolve(totalPrice);
   }
   return Promise.reject(new Error());
 }
 
-function addOrder(order) {
-  return validateOrder(order).then((obj) => {
-    if (obj.totalPrice !== -1) {
-      return UserOrders.findOne({ username: order.username, date: obj.date })
-        .then((tmp) => {
-          if (tmp !== null) {
-            UserOrdersLogController.updateOrder(order.username, obj.date);
-            return UserBalanceController.updateUserBalance(order.username, tmp.totalPrice - obj.totalPrice);
+function addOrder(order, vendorName) {
+  return calculateOrderSum(order, vendorName).then((totalPrice) => {
+    const {
+      date,
+      username,
+      dishList,
+    } = order;
+
+    if (totalPrice !== -1) {
+      return UserOrders.findOne({ username, date, vendorName })
+        .then((prevOrder) => {
+          if (prevOrder !== null) {
+            UserOrdersLogController.updateOrder(username, date);
+            return UserBalanceController.updateUserBalance(order.username, prevOrder.totalPrice - totalPrice);
           }
-          UserOrdersLogController.makeOrder(order.username, obj.date);
-          balanceLogController.updateBalance(order.username);
-          return UserBalanceController.updateUserBalance(order.username, -obj.totalPrice);
+          UserOrdersLogController.makeOrder(username, date);
+          balanceLogController.updateBalance(username);
+          return UserBalanceController.updateUserBalance(username, -totalPrice);
         })
         .then(() => UserOrders.update(
-          { username: order.username, date: obj.date },
+          { username, date, vendorName },
           {
             $set: {
-              date: obj.date,
-              username: obj.username,
-              totalPrice: obj.totalPrice,
-              dishList: obj.dishList,
+              date,
+              username,
+              totalPrice,
+              dishList,
             },
           },
           { new: true, upsert: true },
-        ).then(() => (Promise.resolve({ totalPrice: obj.totalPrice }))));
+        ).then(() => (Promise.resolve({ totalPrice }))));
     }
 
-    return UserOrders.findOne({ username: order.username, date: obj.date })
-      .then((tmp) => {
-        if (!tmp) {
+    return UserOrders.findOne({ username, date, vendorName })
+      .then((prevOrder) => {
+        if (!prevOrder) {
           return Promise.resolve({ totalPrice: 0 });
-        } return UserBalanceController.updateUserBalance(order.username, tmp.totalPrice);
+        } return UserBalanceController.updateUserBalance(username, prevOrder.totalPrice);
       })
-      .then(() => UserOrders.findOne({ username: order.username, date: obj.date }).remove()
-        .exec(() => UserOrdersLogController.removeOrder(order.username, obj.date)))
+      .then(() => UserOrders.findOne({ username, date, vendorName })
+        .remove()
+        .exec(() => UserOrdersLogController.removeOrder(username, date)))
       .then(() => (Promise.resolve({ totalPrice: 0 })));
   });
 }
 
 function getOrdersByDate(date) {
-  const currentDate = new Date(date);
-  setMidnight(currentDate);
+  const currentDate = setMidnight(date);
 
   return UserOrders.find({ date: { $eq: currentDate } })
     .then(obj => ({ result: obj }));
@@ -144,21 +142,19 @@ function splitDate(date) {
   return constructDate(buffer[0], buffer[1], buffer[2]);
 }
 
-function isCurrentDayAvailable(weekDuration, currentDate) {
+function isCurrentDayAvailable(weekDuration, currentDate, vendorName) {
   let MENU = MenuController.getActualMenus();
+  let menuWithDayToCheck;
 
-
-  if (MENU[0] !== undefined && MENU[0].date === weekDuration) {
-    MENU = MENU[0];
-  } else if (MENU[1] !== undefined && MENU[1].date === weekDuration) {
-    MENU = MENU[1];
-  } else {
-    return null;
+  if (MENU[0].length) {
+    menuWithDayToCheck = MENU[0].find(el => (el.vendorName === vendorName && el.date === weekDuration)).menu;
   }
-
-  const key = Object.keys(MENU).find(day => MENU[day].day !== undefined
-        && MENU[day].day.getTime() === currentDate.getTime());
-  const tmp = MENU[key];
+  if (!menuWithDayToCheck && MENU[1].length) {
+    menuWithDayToCheck = MENU[1].find(el => (el.vendorName === vendorName && el.date === weekDuration)).menu;
+  }
+  const key = Object.keys(menuWithDayToCheck).find(day => menuWithDayToCheck[day].day !== undefined
+    && menuWithDayToCheck[day].day.getTime() === currentDate.getTime());
+  const tmp = menuWithDayToCheck[key];
 
   if (tmp !== undefined) return tmp.available;
   return true;
@@ -170,40 +166,39 @@ function increaseUserBalance(orders) {
 }
 
 
-function removeOrdersByDate(today, weekDuration) {
+function removeOrdersByDate(today, weekDuration, vendorName) {
   const currentDate = new Date(Moment.parseZone(today).utc().startOf('day'));
   const weekDates = weekDuration.split('-');
   const startWeekDate = new Date(splitDate(weekDates[0]));
   const endWeekDate = new Date(splitDate(weekDates[1]));
 
   const currentDayAvailability =
-  isCurrentDayAvailable(weekDuration, currentDate);
+    isCurrentDayAvailable(weekDuration, currentDate, vendorName);
   if (currentDayAvailability === null) {
     return Promise.reject();
   }
 
-
   if (startWeekDate.getTime() <= currentDate.getTime()
-       && currentDate.getTime() <= endWeekDate.getTime()) {
+    && currentDate.getTime() <= endWeekDate.getTime()) {
     if (currentDayAvailability) {
       return UserOrders.find({ date: { $gte: currentDate, $lte: endWeekDate } })
         .then((orders) => {
           increaseUserBalance(orders);
-          return UserOrders.deleteMany({ date: { $gte: currentDate, $lte: endWeekDate } });
+          return UserOrders.deleteMany({ date: { $gte: currentDate, $lte: endWeekDate }, vendorName });
         });
     }
 
     return UserOrders.find({ date: { $gt: currentDate, $lte: endWeekDate } })
       .then((orders) => {
         increaseUserBalance(orders);
-        return UserOrders.deleteMany({ date: { $gt: currentDate, $lte: endWeekDate } });
+        return UserOrders.deleteMany({ date: { $gt: currentDate, $lte: endWeekDate }, vendorName });
       });
   }
   if (currentDate.getTime() < startWeekDate.getTime()) {
     return UserOrders.find({ date: { $gte: startWeekDate, $lte: endWeekDate } })
       .then((orders) => {
         increaseUserBalance(orders);
-        return UserOrders.deleteMany({ date: { $gte: startWeekDate, $lte: endWeekDate } });
+        return UserOrders.deleteMany({ date: { $gte: startWeekDate, $lte: endWeekDate }, vendorName });
       });
   }
   return Promise.reject();

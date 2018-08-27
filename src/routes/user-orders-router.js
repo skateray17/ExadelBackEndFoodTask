@@ -29,7 +29,7 @@ router.route('/')
     User.findById({ _id: req.parsedToken.id })
       .then((user) => {
         req.body.username = user.email;
-        return ordersController.addOrder(req.body);
+        return ordersController.addOrder(req.body, req.body.vendorName);
       })
       .then((response) => {
         res.status(200).send(response);
