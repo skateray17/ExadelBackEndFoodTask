@@ -41,7 +41,7 @@ router.post('/login', (req, res) => {
 });
 
 router.get('/logout', (req, res) => axios(`${ExternalLinks.rvisionLink}/security/logout`, {
-  headers: { cookie: req.headers.cookie },
+  headers: { cookie: req.headers.Authorization },
   method: 'GET',
 }).then((response) => {
   if (response.data.success) {

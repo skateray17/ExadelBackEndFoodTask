@@ -14,7 +14,7 @@ router.route('/')
         }
         return new Error('Relogin is needed');
       })
-      .then(userInfo => Employee.findOne({ username: userInfo.login }).then((user) => {
+      .then(userInfo => Employee.findOne({ email: userInfo.login }).then((user) => {
         if (!user) return Promise.reject();
         const {
           firstName, lastName, id, email,

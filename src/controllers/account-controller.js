@@ -13,11 +13,15 @@ export default {
 
 function login(req, res, userCredential) {
   axios.post(`${ExternalLinks.rvisionLink}/security/login?username=${userCredential.username}&password=${userCredential.password}`)
-    .then((rvisionRes) => {
-      console.log(rvisionRes.data);
+    .then(async (rvisionRes) => {
       if (rvisionRes.data.success) {
-        res.setHeader('set-cookie', rvisionRes.headers['set-cookie']);
-        return res.status(200).send('Success');
+        res.setHeader('Set-cookie', rvisionRes.headers['set-cookie']);
+        const { firstName, lastName } = await Employee.findOne({ email: rvisionRes.data.login });
+        let type = 1;
+        if (rvisionRes.data.permissions.includes('efds_admin')) { type = 10; }
+        return res.status(202).send(JSON.stringify({
+          cookie: rvisionRes.headers['set-cookie'], firstName, lastName, type,
+        }));
       }
       return res.status(403).send(rvisionRes.data.statusMsg);
     })
@@ -42,12 +46,17 @@ function firstLogin(req, res, userCredential) {
           new UserBalance({
             firstName: data.firstName,
             lastName: data.lastName,
-            email: data.login,
+            username: data.login,
             balance: 0,
           }).save();
         }).catch(() => res.status(502).send('Failed to load data'));
-        res.setHeader('set-cookie', rvisionRes.headers['set-cookie']);
-        return res.status(202).send('Success');
+        res.setHeader('Set-cookie', rvisionRes.headers['set-cookie']);
+        const { firstName, lastName } = Employee.findOne({ email: rvisionRes.data.login }).then(empl => empl);
+        let type = 1;
+        if (rvisionRes.data.permissions.includes('efds_admin')) { type = 10; }
+        return res.status(202).send(JSON.stringify({
+          cookie: rvisionRes.headers['set-cookie'], firstName, lastName, type,
+        }));
       }
       return res.status(403).send(rvisionRes.data.statusMsg);
     })
@@ -56,19 +65,19 @@ function firstLogin(req, res, userCredential) {
 
 function checkLoginStatus(req, res, next) {
   return axios(`${ExternalLinks.rvisionLink}/security/getLoginStatus`, {
-    headers: { cookie: req.headers.cookie },
+    headers: { cookie: req.headers.authorization },
     method: 'GET',
   }).then((response) => {
     if (response.data.loginStatus === 'loggedIn') {
       return next();
     }
     return res.status(401).end();
-  }).catch(() => res.status(500).end());
+  }).catch(() => res.status(500).end('Login status error'));
 }
 
 function getLoginStatus(req) {
   return axios(`${ExternalLinks.rvisionLink}/security/getLoginStatus`, {
-    headers: { cookie: req.headers.cookie },
+    headers: { cookie: req.headers.authorization },
     method: 'GET',
   }).then((response) => {
     if (response.data.loginStatus === 'loggedIn') {

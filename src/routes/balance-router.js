@@ -9,7 +9,8 @@ const router = express.Router();
 router.route('/')
   .get((req, res, next) => {
     if (!('name' in req.query)) {
-      accountController.getUsername(req)
+      accountController.getLoginStatus(req)
+        .then(rvisionRes => (rvisionRes.data.login))
         .then(username => balanceController.findUserByUsername(username))
         .then((response) => {
           res.status(200).send(response);

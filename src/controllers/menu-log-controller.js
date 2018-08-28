@@ -23,8 +23,8 @@ function removeMenu(menuDate) {
 }
 
 function getLogs({ startDate, endDate, menuDate }) {
-  startDate = Moment.parseZone(startDate || 0).utc();
-  endDate = Moment.parseZone(endDate || Date.now()).utc();
+  startDate = Moment.parseZone(new Date(startDate || 0)).utc();
+  endDate = Moment.parseZone(new Date(endDate || Date.now())).utc();
 
   if (menuDate) {
     return MenuLog.find({

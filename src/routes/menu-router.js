@@ -49,7 +49,7 @@ router.route('/')
 
   .get((req, res) => {
     const MENUS = menuController.getActualMenus();
-    res.status(200).send(MENUS);
+    return res.status(200).send(MENUS);
   })
 
   .delete(authorization.authorizeAdmin)
