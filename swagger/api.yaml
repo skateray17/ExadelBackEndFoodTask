@@ -225,7 +225,7 @@ paths:
     put:
       tags:
         - "balance"
-      summary: "update User Balance"
+      summary: "update Employee Balance"
       parameters:
       - in: "body"
         name: "body"
@@ -242,6 +242,6 @@ paths:
         200:
           description: "Successfull operation"
         500:
-          description: "User not found"
+          description: "Employee not found"
                 
                 

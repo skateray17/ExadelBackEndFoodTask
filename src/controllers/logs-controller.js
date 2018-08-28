@@ -11,7 +11,7 @@ function getLogs({ startDate, endDate }) {
       values.forEach((value) => {
         arr = arr.concat(value);
       });
-      arr = arr.sort((first, second) => first.logDate.getTime() - second.logDate.getTime());
+      arr = arr.sort((first, second) => second.logDate.getTime() - first.logDate.getTime());
       return arr;
     });
 }

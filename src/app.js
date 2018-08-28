@@ -3,20 +3,18 @@ import express from 'express';
 import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import path from 'path';
-import accountRouter from './routes/account-routes';
-import menuRouter from './routes/menu-router';
-import orderRouter from './routes/user-orders-router';
-import balanceRouter from './routes/balance-router';
-import authorization from './controllers/authorization';
-import userRouter from './routes/user-router';
-import logsRouter from './routes/logs-router';
-import vendorsRouter from './routes/vendor-router';
+import cors from 'cors';
+import passport from 'passport';
+import MainRouter from './routes/main-router';
+
 
 
 dotenv.config();
 const app = express();
 
 mongoose.connect(process.env.CONNECTION_STRING);
+
+app.use(passport.initialize());
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -27,15 +25,12 @@ app.use((req, res, next) => {
 app.options('*', (req, res) => res.end());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
-app.use('/api/account', accountRouter);
-app.use('/api/', authorization.authorizeUser);
-app.use('/api/menu', menuRouter);
-app.use('/api/order', orderRouter);
-app.use('/api/balance', balanceRouter);
-app.use('/api/user', userRouter);
-app.use('/api/logs', logsRouter);
-app.use('/api/vendors', vendorsRouter);
+// app.use(cors({
+//   origin: true,
+//   credentials: true,
+//
+// }));
+app.use('/', MainRouter);
 
 app.get('/swagger/:params*', (req, res) => res.sendFile(path.resolve(`${__dirname}/../${req.path}`)));
 

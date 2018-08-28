@@ -1,30 +1,14 @@
-import accountController from './account-controller';
-import userTypes from '../models/user-types';
+import accountController from '../controllers/account-controller';
 
 export default {
-  authorizeUser, // eslint-disable-line
   authorizeAdmin, // eslint-disable-line
 };
 
-function authorize(req, res, next, type) {
-  (req.parsedToken ? Promise.resolve(req.parsedToken)
-    : accountController.untokenize(req.headers.authorization))
-    .then((token) => {
-      req.parsedToken = token;
-      if (!token || token.type < type) {
-        return Promise.reject();
-      }
-      return next();
-    })
-    .catch(() => {
-      res.status(403).send('No permissions');
-    });
-}
-
-function authorizeUser(req, res, next) {
-  authorize(req, res, next, userTypes.BASIC_USER);
-}
-
 function authorizeAdmin(req, res, next) {
-  authorize(req, res, next, userTypes.ADMIN);
+  return accountController.getLoginStatus(req, res).then((response) => {
+    if (response.data.permissions.includes('efds_admin')) {
+      return next();
+    }
+    return res.status(403).end('NO PERMISSION');
+  }).catch(() => res.status(401).end('Login status error'));
 }

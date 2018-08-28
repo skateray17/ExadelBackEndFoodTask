@@ -5,16 +5,23 @@
   "main": "./build/app.js",
   "dependencies": {
     "ajv": "^6.4.0",
+    "axios": "^0.18.0",
+    "body": "^5.1.0",
     "body-parser": "^1.18.2",
+    "cors": "^2.8.4",
     "dotenv": "^5.0.1",
     "eslint-config-standard": "^11.0.0",
     "eslint-plugin-node": "^6.0.1",
     "eslint-plugin-promise": "^3.7.0",
     "eslint-plugin-standard": "^3.0.1",
     "express": "^4.16.3",
+    "form-data": "^2.3.2",
     "jsonwebtoken": "^8.2.1",
     "moment": "^2.22.2",
     "mongoose": "^5.0.14",
+    "node-fetch": "^2.2.0",
+    "passport": "^0.4.0",
+    "passport-local": "^1.0.0",
     "xlsx": "^0.12.8"
   },
   "devDependencies": {
