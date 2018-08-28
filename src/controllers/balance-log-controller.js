@@ -1,6 +1,7 @@
 import Moment from 'moment/moment';
 import BalanceLog from '../models/BalanceLog';
 
+
 function log(username, message, currency, balanceChange) {
   return new BalanceLog({
     username,
