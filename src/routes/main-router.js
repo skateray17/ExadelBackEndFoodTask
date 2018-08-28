@@ -6,7 +6,7 @@ import menuRouter from './menu-router';
 import userRouter from './user-router';
 import logsRouter from './logs-router';
 import accountController from '../controllers/account-controller';
-import vendorsRouter from '../vendor-router';
+import vendorsRouter from './vendor-router';
 
 const router = express.Router();
 
