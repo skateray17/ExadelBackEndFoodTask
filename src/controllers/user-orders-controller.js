@@ -143,7 +143,7 @@ function splitDate(date) {
 }
 
 function isCurrentDayAvailable(weekDuration, currentDate, vendorName) {
-  let MENU = MenuController.getActualMenus();
+  const MENU = MenuController.getActualMenus();
   let menuWithDayToCheck;
 
   if (MENU[0].length) {
