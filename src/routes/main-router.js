@@ -6,6 +6,7 @@ import menuRouter from './menu-router';
 import userRouter from './user-router';
 import logsRouter from './logs-router';
 import accountController from '../controllers/account-controller';
+import vendorsRouter from '../vendor-router';
 
 const router = express.Router();
 
@@ -17,5 +18,7 @@ router.use('/api/', accountController.checkLoginStatus);
 router.use('/api/menu', menuRouter);
 router.use('/api/balance', balanceRouter);
 router.use('/api/logs', logsRouter);
+router.use('/api/vendors', vendorsRouter);
+
 
 module.exports = router;
