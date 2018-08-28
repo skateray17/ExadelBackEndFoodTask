@@ -71,11 +71,11 @@ function checkLoginStatus(req, res, next) {
     if (response.data.loginStatus === 'loggedIn') {
       return next();
     }
-    return res.status(401).end();
-  }).catch(() => res.status(500).end('Login status error'));
+    return res.status(401).end('Login status error');
+  }).catch(() => res.status(401).end('Login status error'));
 }
 
-function getLoginStatus(req) {
+function getLoginStatus(req, res) {
   return axios(`${ExternalLinks.rvisionLink}/security/getLoginStatus`, {
     headers: { cookie: req.headers.authorization },
     method: 'GET',
@@ -83,6 +83,6 @@ function getLoginStatus(req) {
     if (response.data.loginStatus === 'loggedIn') {
       return Promise.resolve(response);
     }
-    return Promise.reject();
+    return res.status(401).end('Login status error');
   });
 }

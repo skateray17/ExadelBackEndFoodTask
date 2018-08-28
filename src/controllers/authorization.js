@@ -5,10 +5,10 @@ export default {
 };
 
 function authorizeAdmin(req, res, next) {
-  return accountController.getLoginStatus(req).then((response) => {
+  return accountController.getLoginStatus(req, res).then((response) => {
     if (response.data.permissions.includes('efds_admin')) {
       return next();
     }
-    return res.status(401).end('NO PERMISSION');
-  }).catch(() => res.status(500).end());
+    return res.status(403).end('NO PERMISSION');
+  }).catch(() => res.status(401).end('Login status error'));
 }

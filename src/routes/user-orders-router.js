@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.route('/')
   .get((req, res) => {
-    accountController.getLoginStatus(req)
+    accountController.getLoginStatus(req, res)
       .then((rvisionRes) => {
         if (req.query.currentDate === undefined) {
           return Employee.find({ email: rvisionRes.data.login })
@@ -29,7 +29,7 @@ router.route('/')
 
 router.route('/')
   .put((req, res) => {
-    accountController.getLoginStatus(req)
+    accountController.getLoginStatus(req, res)
       .then(rvisionRes => Employee.findById({ email: rvisionRes.data.login }))
       .then((user) => {
         req.body.username = user.email;

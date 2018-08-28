@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.route('/')
   .get((req, res) => {
-    accountController.getLoginStatus(req)
+    accountController.getLoginStatus(req, res)
       .then((response) => {
         if (response.data.loginStatus === 'loggedIn') {
           if (response.data.permissions.includes('efds_admin')) { return { login: response.data.login, type: 10 }; }
