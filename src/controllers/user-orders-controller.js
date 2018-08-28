@@ -84,6 +84,7 @@ function addOrder(order, vendorName) {
       username,
       dishList,
     } = order;
+
     if (totalPrice !== -1) {
       return UserOrders.findOne({ username, date, vendorName })
         .then((prevOrder) => {
