@@ -1,36 +1,64 @@
 import UserOrdersLog from '../models/UserOrdersLog';
 import Messages from '../models/Messages';
+import Moment from 'moment/moment';
 
-function constructMessage(msg) {
-  return { message: msg, logDate: Math.floor(Date.now()) };
-}
-function log(username, date, message) {
-  return UserOrdersLog.update(
-    { username, orderDate: date },
-    {
-      $set: {
-        orderDate: date,
-        username,
-      },
-      $push: { logs: constructMessage(message) },
-
-    },
-    { new: true, upsert: true },
-  );
+function log(username, orderDate, message) {
+  return new UserOrdersLog({
+    username,
+    orderDate,
+    message,
+    logDate: Math.floor(Date.now()),
+  }).save();
 }
 function makeOrder(username, date) {
-  return log(username, date, Messages.makeOrder);
+  return log(username, date, 'makeOrder');
 }
 
 function removeOrder(username, date) {
-  return log(username, date, Messages.removeOrder);
+  return log(username, date, 'removeOrder');
 }
 
 function updateOrder(username, date) {
-  return log(username, date, Messages.updateOrder);
+  return log(username, date, 'updateOrder');
 }
+
+function getLogs({
+  startDate,
+  endDate,
+  username,
+  orderDate,
+}) {
+  startDate = Moment.parseZone(startDate || 0).utc();
+  endDate = Moment.parseZone(endDate || Date.now()).utc();
+
+  if (username && orderDate) {
+    return UserOrdersLog.find({
+      logDate: { $gte: startDate, $lte: endDate },
+      username,
+      orderDate,
+    });
+  }
+  if (username) {
+    return UserOrdersLog.find({
+      logDate: { $gte: startDate, $lte: endDate },
+      username,
+    });
+  }
+  if (orderDate) {
+    return UserOrdersLog.find({
+      logDate: { $gte: startDate, $lte: endDate },
+      orderDate,
+    });
+  }
+
+  return UserOrdersLog.find({
+    logDate: { $gte: startDate, $lte: endDate },
+  });
+}
+
 export default {
   makeOrder,
   removeOrder,
   updateOrder,
+  getLogs,
 };

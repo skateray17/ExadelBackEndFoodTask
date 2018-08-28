@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
 
 const UserOrdersLogSchema = new mongoose.Schema({
-  logs: [{ message: String, logDate: { type: Date, default: Date.now } }],
+  message: String,
+  logDate: { type: Date, default: Date.now },
   username: String,
   orderDate: { type: Date, default: Date.now },
 

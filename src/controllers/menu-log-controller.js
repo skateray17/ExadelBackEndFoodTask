@@ -1,38 +1,48 @@
+import Moment from 'moment';
 import MenuLog from '../models/MenuLog';
-import Messages from '../models/Messages';
 
-function constructMessage(msg) {
-  return { message: msg, logDate: Math.floor(Date.now()) };
-}
-function log(menuDate, message) {
-  return MenuLog.update(
-    { menuDate },
-    {
-      $set: {
-        menuDate,
-      },
-      $push: { logs: constructMessage(message) },
-
-    },
-    { new: true, upsert: true },
-  );
+function log(menuDate, message, vendorName) {
+  return new MenuLog({
+    menuDate,
+    vendorName,
+    message,
+    logDate: Math.floor(Date.now()),
+  }).save();
 }
 
-function uploadMenu(menuDate) {
-  return log(menuDate, Messages.uploadMenu);
+function uploadMenu(menuDate, vendorName) {
+  return log(menuDate, 'uploadMenu', vendorName);
 }
-function publishMenu(menuDate) {
-  return log(menuDate, Messages.publishMenu);
+function publishMenu(menuDate, vendorName) {
+  return log(menuDate, 'publishMenu', vendorName);
 }
-function disableDay(menuDate) {
-  return log(menuDate, Messages.disableDay);
+function disableDay(menuDate, vendorName) {
+  return log(menuDate, 'disableDay', vendorName);
 }
-function removeMenu(menuDate) {
-  return log(menuDate, Messages.removeMenu);
+function removeMenu(menuDate, vendorName) {
+  return log(menuDate, 'removeMenu', vendorName);
 }
+
+function getLogs({ startDate, endDate, menuDate }) {
+  startDate = Moment.parseZone(startDate || 0).utc();
+  endDate = Moment.parseZone(endDate || Date.now()).utc();
+
+  if (menuDate) {
+    return MenuLog.find({
+      logDate: { $gte: startDate, $lte: endDate },
+      menuDate,
+    });
+  }
+
+  return MenuLog.find({
+    logDate: { $gte: startDate, $lte: endDate },
+  });
+}
+
 export default {
   uploadMenu,
   publishMenu,
   disableDay,
   removeMenu,
+  getLogs,
 };

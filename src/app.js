@@ -9,6 +9,9 @@ import orderRouter from './routes/user-orders-router';
 import balanceRouter from './routes/balance-router';
 import authorization from './controllers/authorization';
 import userRouter from './routes/user-router';
+import logsRouter from './routes/logs-router';
+import vendorsRouter from './routes/vendor-router';
+
 
 dotenv.config();
 const app = express();
@@ -31,6 +34,8 @@ app.use('/api/menu', menuRouter);
 app.use('/api/order', orderRouter);
 app.use('/api/balance', balanceRouter);
 app.use('/api/user', userRouter);
+app.use('/api/logs', logsRouter);
+app.use('/api/vendors', vendorsRouter);
 
 app.get('/swagger/:params*', (req, res) => res.sendFile(path.resolve(`${__dirname}/../${req.path}`)));
 
