@@ -12,7 +12,7 @@ router.route('/')
     accountController.getLoginStatus(req, res)
       .then((rvisionRes) => {
         if (req.query.currentDate === undefined) {
-          return Employee.findOne({ email: rvisionRes.data.login })
+          return Employee.find({ email: rvisionRes.data.login })
             .then(user => ordersController
               .getOrders(user.email, { startDate: req.query.startDate, endDate: req.query.endDate }))
             .then((response) => {
@@ -30,7 +30,7 @@ router.route('/')
 router.route('/')
   .put((req, res) => {
     accountController.getLoginStatus(req, res)
-      .then(rvisionRes => Employee.findOne({ email: rvisionRes.data.login }))
+      .then(rvisionRes => Employee.findById({ email: rvisionRes.data.login }))
       .then((user) => {
         req.body.username = user.email;
         return ordersController.addOrder(req.body, req.body.vendorName);
